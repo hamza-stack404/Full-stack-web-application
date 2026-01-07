@@ -1,0 +1,118 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+.venv/
+env.bak/
+venv.bak/
+
+# Next.js
+.next/
+out/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Python
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# History and temp files
+.history/
+.history/**
+.history/**
+.history/**/*
+.history/**/*.*
+.history/**/*/*.*
+.history/**/*/*/*.*
+.history/**/*/*/*/*.*
+
+# Gemini/AI files
+.gemini/
+.gemini/**
+
+# Specify files
+.specify/
+.specify/**
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Test and coverage
+coverage/
+.coverage
+*.cover
+*.log
+
+# Backend
+backend/__pycache__/
+backend/src/__pycache__/
+backend/src/api/__pycache__/
+backend/src/models/__pycache__/
+backend/src/services/__pycache__/
+
+# Alembic
+backend/alembic/versions/__pycache__/
+
+# History prompts
+history/
+history/**
+
+# Specs
+specs/
+specs/**
+
+# Test files
+test_*.py
+*_test.py
+comprehensive_test.py
+test_*.pyc
+*_test.pyc
+test_*.pyo
+*_test.pyo
+
+# Logs
+*.err.log
+*.out.log
+server.log
+frontend.log
