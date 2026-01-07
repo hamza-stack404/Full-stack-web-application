@@ -40,7 +40,14 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
             raise HTTPException(status_code=400, detail="Username already registered")
         
         logger.info(f"Creating user: {user.username}")
-        return user_service.create_user(db=db, user=user)
+        result = user_service.create_user(db=db, user=user)
+        
+        # Return as schemas.User instance
+        return schemas.User(
+            id=result["id"],
+            username=result["username"],
+            email=result["email"]
+        )
         
     except HTTPException:
         raise
