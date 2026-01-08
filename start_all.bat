@@ -19,14 +19,14 @@ echo.
 
 REM Start Backend in new terminal
 echo [1/2] Starting Backend (localhost:8000)...
-start "Backend - Todo App" cmd /k "cd backend && call run_backend.bat"
+start "Backend - Todo App" cmd /k "call start_backend.bat"
 
 REM Wait a moment for backend to start
 timeout /t 3 /nobreak
 
 REM Start Frontend in new terminal
 echo [2/2] Starting Frontend (localhost:3000)...
-start "Frontend - Todo App" cmd /k "cd frontend && npm run dev"
+start "Frontend - Todo App" cmd /k "call start_frontend.bat"
 
 echo.
 echo ========================================
@@ -38,7 +38,7 @@ echo Backend:  http://localhost:8000
 echo.
 echo Two new windows should have opened.
 echo If not, manually run:
-echo   - backend\run_backend.bat
-echo   - cd frontend && npm run dev
+echo   - start_backend.bat
+echo   - start_frontend.bat
 echo.
 pause

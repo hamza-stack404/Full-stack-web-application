@@ -1,13 +1,22 @@
 "use client";
 
 import { Checkbox } from "@/components/ui/checkbox";
-import { Trash2 } from "lucide-react";
+import { Trash2, Calendar as CalendarIcon } from "lucide-react";
+import { format } from 'date-fns';
 
 interface TaskItem {
   id: number;
   title: string;
   is_completed: boolean;
+  priority: string;
+  due_date?: string;
 }
+
+const priorityColors: { [key: string]: string } = {
+  high: 'bg-red-500',
+  medium: 'bg-yellow-500',
+  low: 'bg-green-500',
+};
 
 export default function Task({ 
   task, 
@@ -38,15 +47,24 @@ export default function Task({
           {task.title}
         </label>
       </div>
-      <button
-        onClick={() => onDelete(task.id)}
-        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 rounded-lg 
-                   hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400
-                   hover:text-red-700 dark:hover:text-red-300"
-        aria-label="Delete task"
-      >
-        <Trash2 className="h-4 w-4" />
-      </button>
+      <div className="flex items-center gap-4">
+        {task.due_date && (
+          <div className="flex items-center gap-1 text-xs text-slate-500">
+            <CalendarIcon className="h-4 w-4" />
+            {format(new Date(task.due_date), "MMM d")}
+          </div>
+        )}
+        <div className={`w-3 h-3 rounded-full ${priorityColors[task.priority]}`}></div>
+        <button
+          onClick={() => onDelete(task.id)}
+          className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 rounded-lg 
+                     hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400
+                     hover:text-red-700 dark:hover:text-red-300"
+          aria-label="Delete task"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      </div>
     </div>
   );
 }

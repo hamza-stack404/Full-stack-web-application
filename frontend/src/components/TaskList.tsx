@@ -6,6 +6,8 @@ interface TaskItem {
   id: number;
   title: string;
   is_completed: boolean;
+  priority: string;
+  due_date?: string;
 }
 
 export default function TaskList({ 
