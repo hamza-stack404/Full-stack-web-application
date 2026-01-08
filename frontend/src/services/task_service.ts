@@ -1,6 +1,22 @@
 import axios from 'axios';
 
-const API_URL = '/api';
+// Use environment variable or construct from current domain
+const getAPIUrl = () => {
+  // Client-side check
+  if (typeof window !== 'undefined') {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return 'http://localhost:8000/api';
+    }
+    // For production Vercel apps, use the backend Vercel URL
+    return 'https://hamza-todo-backend.vercel.app/api';
+  }
+  // Fallback for server-side
+  return process.env.NEXT_PUBLIC_API_URL || 'https://hamza-todo-backend.vercel.app/api';
+};
+
+const API_URL = getAPIUrl();
+
+console.log('Task Service API URL:', API_URL);
 
 interface TaskData {
   title: string;
@@ -19,6 +35,7 @@ const getAuthHeaders = () => {
   return {
     headers: {
       Authorization: token ? `Bearer ${token}` : '',
+      'Content-Type': 'application/json',
     },
   };
 };
