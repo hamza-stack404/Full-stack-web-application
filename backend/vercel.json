@@ -2,7 +2,7 @@
   "buildCommand": "pip install -r requirements.txt",
   "builds": [
     {
-      "src": "api.py",
+      "src": "src/main.py",
       "use": "@vercel/python",
       "config": { 
         "maxLambdaSize": "15mb", 
@@ -16,7 +16,7 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "api.py"
+      "dest": "src/main.py"
     }
   ],
   "env": {
