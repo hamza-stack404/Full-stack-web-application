@@ -25,6 +25,9 @@ interface TaskData {
 
 interface Task extends TaskData {
   id: number;
+  priority: string;
+  due_date?: string;
+  updated_at?: string;
 }
 
 const getAuthHeaders = () => {

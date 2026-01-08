@@ -9,7 +9,7 @@ import AddTaskForm from '../../components/AddTaskForm';
 import { useError } from '../../providers/ErrorProvider';
 import ThemeToggle from '../../components/ThemeToggle';
 import { LogOut } from 'lucide-react';
-import { Tooltip } from '@/components/ui/tooltip';
+import { Tooltip } from '../../components/ui/tooltip';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import WelcomeModal from '../../components/WelcomeModal';
 import { Input } from '@/components/ui/input';
@@ -40,7 +40,6 @@ export default function Tasks() {
   const [sortBy, setSortBy] = useState('none');
   const [searchTerm, setSearchTerm] = useState('');
   const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(false);
-  const [runTour, setRunTour] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -149,16 +148,11 @@ export default function Tasks() {
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
             <h1 className="heading-2 gradient-text">My Tasks</h1>
-            <Link href="/dashboard" className="text-lg font-semibold text-slate-900 dark:text-slate-100 dashboard-link">Dashboard</Link>
+            <Link href="/dashboard" className="text-lg font-semibold text-slate-900 dark:text-slate-100">Dashboard</Link>
           </div>
           <div className="flex items-center gap-4">
-            <button onClick={() => setRunTour(true)} className="btn-outline">
-              Take a Tour
-            </button>
             <Tooltip text="Toggle theme">
-              <div className="theme-toggle">
-                <ThemeToggle />
-              </div>
+              <ThemeToggle />
             </Tooltip>
             <button
               onClick={handleLogout}
@@ -171,12 +165,12 @@ export default function Tasks() {
         </div>
       </header>
       <main className="container mx-auto p-6 space-y-6">
-        <div className="card-hover add-task-form">
+        <div className="card-hover">
           <h2 className="text-xl font-semibold mb-4">Add a new task</h2>
           <AddTaskForm onAdd={handleAdd} />
         </div>
 
-        <div className="flex justify-between items-center filters">
+        <div className="flex justify-between items-center">
           <div className="flex gap-4">
             <Tooltip text="Search by task title">
               <Input
@@ -215,7 +209,7 @@ export default function Tasks() {
           </div>
         </div>
 
-        <div className="animate-fadeInUp task-list">
+        <div className="animate-fadeInUp">
           <TaskList tasks={filteredAndSortedTasks} onUpdate={handleUpdate} onDelete={handleDelete} />
         </div>
         {error && (
@@ -224,7 +218,6 @@ export default function Tasks() {
           </div>
         )}
         <WelcomeModal isOpen={isWelcomeModalOpen} onClose={() => setIsWelcomeModalOpen(false)} />
-        <GuidedTour run={runTour} onClose={() => setRunTour(false)} />
       </main>
     </div>
   );
