@@ -12,6 +12,8 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 def get_db():
+    if engine is None:
+        raise HTTPException(status_code=503, detail="Database not available")
     with Session(engine) as session:
         yield session
 

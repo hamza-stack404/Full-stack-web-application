@@ -1,17 +1,17 @@
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import HTTPException
-from .api import auth, tasks
-from .database import engine # Remove drop_alembic_version_table_if_exists from import
-from sqlmodel import SQLModel
 from fastapi.middleware.cors import CORSMiddleware
 import logging
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI()
+app = FastAPI(title="Todo Backend", version="1.0.0")
+
+logger.info("Starting app initialization...")
 
 origins = [
     "http://localhost:3000",
@@ -22,7 +22,6 @@ origins = [
 ]
 
 # Allow all origins in production - adjust as needed
-import os
 if os.getenv("ENVIRONMENT") == "production":
     origins.extend([
         "https://*.vercel.app",
@@ -49,8 +48,35 @@ async def log_requests(request: Request, call_next):
         logger.error(f"Middleware error: {str(e)}", exc_info=True)
         raise
 
-app.include_router(auth.router, prefix="/api", tags=["auth"])
-app.include_router(tasks.router, prefix="/api", tags=["tasks"])
+# Import routers
+try:
+    logger.info("Importing auth router...")
+    from .api import auth
+    logger.info("Auth router imported successfully")
+    app.include_router(auth.router, prefix="/api", tags=["auth"])
+    logger.info("Auth router registered at /api")
+except Exception as e:
+    logger.error(f"Failed to import auth router: {str(e)}", exc_info=True)
+
+try:
+    logger.info("Importing tasks router...")
+    from .api import tasks
+    logger.info("Tasks router imported successfully")
+    app.include_router(tasks.router, prefix="/api", tags=["tasks"])
+    logger.info("Tasks router registered at /api")
+except Exception as e:
+    logger.error(f"Failed to import tasks router: {str(e)}", exc_info=True)
+
+try:
+    from .database import engine
+except Exception as e:
+    logger.error(f"Failed to import database engine: {str(e)}", exc_info=True)
+    engine = None
+
+try:
+    from sqlmodel import SQLModel
+except Exception as e:
+    logger.error(f"Failed to import SQLModel: {str(e)}", exc_info=True)
 
 @app.on_event("startup")
 def on_startup():
