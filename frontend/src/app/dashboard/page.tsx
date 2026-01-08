@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { getTasks } from '../../services/task_service';
 import { useError } from '../../providers/ErrorProvider';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { subDays, format } from 'date-fns';
@@ -67,7 +68,27 @@ export default function Dashboard() {
   }, [tasks]);
 
   if (loading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    return (
+      <div className="container mx-auto p-6">
+        <Skeleton className="h-8 w-48 mb-4" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="card">
+            <Skeleton className="h-6 w-32 mb-2" />
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+          <div className="card">
+            <Skeleton className="h-6 w-40 mb-2" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-20 mt-2" />
+          </div>
+        </div>
+        <div className="card mt-6">
+          <Skeleton className="h-6 w-40 mb-4" />
+          <Skeleton className="h-[300px] w-full" />
+        </div>
+      </div>
+    );
   }
 
   return (

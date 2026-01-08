@@ -10,6 +10,8 @@ import { useError } from '../../providers/ErrorProvider';
 import ThemeToggle from '../../components/ThemeToggle';
 import { LogOut } from 'lucide-react';
 import { Tooltip } from '../../components/ui/tooltip';
+import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import WelcomeModal from '../../components/WelcomeModal';
 import { Input } from '@/components/ui/input';
@@ -71,10 +73,15 @@ export default function Tasks() {
   }, [router, setError]);
   
   const handleAdd = async (newTask: { title: string; is_completed: boolean; priority: string, due_date: Date | undefined }) => {
+    const tempId = Date.now();
+    const optimisticTask: TaskItem = { ...newTask, id: tempId, due_date: newTask.due_date?.toString() };
+    setTasks([...tasks, optimisticTask]);
+
     try {
       const response = await createTask(newTask);
-      setTasks([...tasks, response.data as TaskItem]);
+      setTasks(tasks => tasks.map(t => t.id === tempId ? response.data as TaskItem : t));
     } catch (err: unknown) {
+      setTasks(tasks => tasks.filter(t => t.id !== tempId));
       const apiError = err as ApiError;
       setError(apiError?.response?.data?.message || 'Failed to add task');
       console.error(err);
@@ -82,10 +89,13 @@ export default function Tasks() {
   };
 
   const handleUpdate = async (id: number, updatedTask: TaskItem) => {
+    const originalTasks = tasks;
+    setTasks(tasks.map((task: TaskItem) => (task.id === id ? updatedTask : task)));
+
     try {
-      const response = await updateTask(id, updatedTask);
-      setTasks(tasks.map((task: TaskItem) => (task.id === id ? (response.data as TaskItem) : task)));
+      await updateTask(id, updatedTask);
     } catch (err: unknown) {
+      setTasks(originalTasks);
       const apiError = err as ApiError;
       setError(apiError?.response?.data?.message || 'Failed to update task');
       console.error(err);
@@ -93,10 +103,13 @@ export default function Tasks() {
   };
 
   const handleDelete = async (id: number) => {
+    const originalTasks = tasks;
+    setTasks(tasks.filter((task: TaskItem) => task.id !== id));
+
     try {
       await deleteTask(id);
-      setTasks(tasks.filter((task: TaskItem) => task.id !== id));
     } catch (err: unknown) {
+      setTasks(originalTasks);
       const apiError = err as ApiError;
       setError(apiError?.response?.data?.message || 'Failed to delete task');
       console.error(err);
@@ -138,8 +151,45 @@ export default function Tasks() {
     return filtered;
   }, [tasks, priorityFilter, sortBy, searchTerm]);
 
+
   if (loading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+        <Progress />
+        <header className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 shadow-sm">
+          <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-8 w-32" />
+              <Skeleton className="h-6 w-24" />
+            </div>
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-9 w-9" />
+              <Skeleton className="h-9 w-24" />
+            </div>
+          </div>
+        </header>
+        <main className="container mx-auto p-6 space-y-6">
+          <div className="card-hover">
+            <Skeleton className="h-10 w-full" />
+          </div>
+
+          <div className="flex justify-between items-center">
+            <div className="flex gap-4">
+              <Skeleton className="h-9 w-[240px]" />
+              <Skeleton className="h-9 w-[180px]" />
+              <Skeleton className="h-9 w-[180px]" />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </div>
+        </main>
+      </div>
+    );
   }
 
   return (
