@@ -84,3 +84,7 @@ async def general_exception_handler(request: Request, exc: Exception):
 @app.get("/")
 def read_root():
     return {"message": "Backend is running", "status": "ok"}
+
+@app.get("/api/health")
+def health_check():
+    return {"status": "healthy", "service": "todo-backend"}
