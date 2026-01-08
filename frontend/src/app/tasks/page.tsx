@@ -9,7 +9,9 @@ import AddTaskForm from '../../components/AddTaskForm';
 import { useError } from '../../providers/ErrorProvider';
 import ThemeToggle from '../../components/ThemeToggle';
 import { LogOut } from 'lucide-react';
+import { Tooltip } from '@/components/ui/tooltip';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import WelcomeModal from '../../components/WelcomeModal';
 import { Input } from '@/components/ui/input';
 
 interface TaskItem {
@@ -37,6 +39,8 @@ export default function Tasks() {
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [sortBy, setSortBy] = useState('none');
   const [searchTerm, setSearchTerm] = useState('');
+  const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(false);
+  const [runTour, setRunTour] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -59,8 +63,14 @@ export default function Tasks() {
     };
 
     fetchTasks();
+    
+    const hasSeenModal = localStorage.getItem('hasSeenWelcomeModal');
+    if (!hasSeenModal) {
+      setIsWelcomeModalOpen(true);
+      localStorage.setItem('hasSeenWelcomeModal', 'true');
+    }
   }, [router, setError]);
-
+  
   const handleAdd = async (newTask: { title: string; is_completed: boolean; priority: string, due_date: Date | undefined }) => {
     try {
       const response = await createTask(newTask);
@@ -139,10 +149,17 @@ export default function Tasks() {
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
             <h1 className="heading-2 gradient-text">My Tasks</h1>
-            <Link href="/dashboard" className="text-lg font-semibold text-slate-900 dark:text-slate-100">Dashboard</Link>
+            <Link href="/dashboard" className="text-lg font-semibold text-slate-900 dark:text-slate-100 dashboard-link">Dashboard</Link>
           </div>
           <div className="flex items-center gap-4">
-            <ThemeToggle />
+            <button onClick={() => setRunTour(true)} className="btn-outline">
+              Take a Tour
+            </button>
+            <Tooltip text="Toggle theme">
+              <div className="theme-toggle">
+                <ThemeToggle />
+              </div>
+            </Tooltip>
             <button
               onClick={handleLogout}
               className="btn-outline flex items-center gap-2"
@@ -154,45 +171,51 @@ export default function Tasks() {
         </div>
       </header>
       <main className="container mx-auto p-6 space-y-6">
-        <div className="card-hover">
+        <div className="card-hover add-task-form">
           <h2 className="text-xl font-semibold mb-4">Add a new task</h2>
           <AddTaskForm onAdd={handleAdd} />
         </div>
 
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center filters">
           <div className="flex gap-4">
-            <Input
-              type="text"
-              placeholder="Search tasks..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-[240px]"
-            />
-            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by priority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Priorities</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">No Sorting</SelectItem>
-                <SelectItem value="due_date_asc">Due Date Asc</SelectItem>
-                <SelectItem value="due_date_desc">Due Date Desc</SelectItem>
-              </SelectContent>
-            </Select>
+            <Tooltip text="Search by task title">
+              <Input
+                type="text"
+                placeholder="Search tasks..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-[240px]"
+              />
+            </Tooltip>
+            <Tooltip text="Filter by priority">
+              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Priorities</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
+                </SelectContent>
+              </Select>
+            </Tooltip>
+            <Tooltip text="Sort by due date">
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No Sorting</SelectItem>
+                  <SelectItem value="due_date_asc">Due Date Asc</SelectItem>
+                  <SelectItem value="due_date_desc">Due Date Desc</SelectItem>
+                </SelectContent>
+              </Select>
+            </Tooltip>
           </div>
         </div>
 
-        <div className="animate-fadeInUp">
+        <div className="animate-fadeInUp task-list">
           <TaskList tasks={filteredAndSortedTasks} onUpdate={handleUpdate} onDelete={handleDelete} />
         </div>
         {error && (
@@ -200,6 +223,8 @@ export default function Tasks() {
             {error}
           </div>
         )}
+        <WelcomeModal isOpen={isWelcomeModalOpen} onClose={() => setIsWelcomeModalOpen(false)} />
+        <GuidedTour run={runTour} onClose={() => setRunTour(false)} />
       </main>
     </div>
   );
