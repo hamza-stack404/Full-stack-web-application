@@ -1,3 +1,3 @@
 @echo off
-echo "Starting backend server with Poetry..."
-poetry run uvicorn src.main:app --host 0.0.0.0 --port 8000
+echo "Starting backend server with Vercel CLI..."
+vercel dev
