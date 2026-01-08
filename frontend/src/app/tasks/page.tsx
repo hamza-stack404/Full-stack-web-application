@@ -195,7 +195,7 @@ export default function Tasks() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
       <header className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 shadow-sm">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+        <div className="container mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-4">
             <h1 className="heading-2 gradient-text">My Tasks</h1>
             <Link href="/dashboard" className="text-lg font-semibold text-slate-900 dark:text-slate-100">Dashboard</Link>
@@ -214,26 +214,26 @@ export default function Tasks() {
           </div>
         </div>
       </header>
-      <main className="container mx-auto p-6 space-y-6">
+      <main className="container mx-auto p-4 sm:p-6 space-y-6 pb-16">
         <div className="card-hover">
           <h2 className="text-xl font-semibold mb-4">Add a new task</h2>
           <AddTaskForm onAdd={handleAdd} />
         </div>
 
-        <div className="flex justify-between items-center">
-          <div className="flex gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 w-full">
             <Tooltip text="Search by task title">
               <Input
                 type="text"
                 placeholder="Search tasks..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-[240px]"
+                className="w-full sm:w-[240px]"
               />
             </Tooltip>
             <Tooltip text="Filter by priority">
               <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Filter by priority" />
                 </SelectTrigger>
                 <SelectContent>
@@ -246,7 +246,7 @@ export default function Tasks() {
             </Tooltip>
             <Tooltip text="Sort by due date">
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
