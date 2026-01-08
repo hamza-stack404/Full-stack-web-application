@@ -16,7 +16,17 @@ app = FastAPI()
 origins = [
     "http://localhost:3000",
     "http://localhost:3001",
+    "https://localhost:3000",
+    "https://localhost:3001",
 ]
+
+# Allow all origins in production - adjust as needed
+import os
+if os.getenv("ENVIRONMENT") == "production":
+    origins.extend([
+        "https://*.vercel.app",
+        "*"
+    ])
 
 app.add_middleware(
     CORSMiddleware,
