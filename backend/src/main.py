@@ -56,14 +56,17 @@ app.include_router(tasks.router, prefix="/api", tags=["tasks"])
 def on_startup():
     """Initialize database tables on startup"""
     try:
+        if engine is None:
+            logger.warning("Database engine is not initialized - skipping table creation")
+            return
+        
         # Only create tables that don't exist
         # Don't drop existing tables - too destructive
         SQLModel.metadata.create_all(engine)
         logger.info("Database tables created/verified successfully")
     except Exception as e:
         logger.error(f"Failed to create database tables: {str(e)}", exc_info=True)
-        # Continue anyway - might already exist
-        pass
+        # Continue anyway - might already exist or DB connection issue
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
