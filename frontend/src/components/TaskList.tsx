@@ -1,5 +1,6 @@
 "use client";
 
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import Task from './Task';
 
 interface TaskItem {
@@ -13,11 +14,13 @@ interface TaskItem {
 export default function TaskList({ 
   tasks, 
   onUpdate, 
-  onDelete 
+  onDelete,
+  onReorder 
 }: { 
   tasks: TaskItem[];
   onUpdate: (id: number, task: TaskItem) => void;
   onDelete: (id: number) => void;
+  onReorder: (startIndex: number, endIndex: number) => void;
 }) {
   if (tasks.length === 0) {
     return (
@@ -32,11 +35,36 @@ export default function TaskList({
     );
   }
 
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination) {
+      return;
+    }
+
+    onReorder(result.source.index, result.destination.index);
+  };
+
   return (
-    <div className="space-y-3">
-      {tasks.map((task) => (
-        <Task key={task.id} task={task} onUpdate={onUpdate} onDelete={onDelete} />
-      ))}
-    </div>
+    <DragDropContext onDragEnd={handleDragEnd}>
+      <Droppable droppableId="tasks">
+        {(provided) => (
+          <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3">
+            {tasks.map((task, index) => (
+              <Draggable key={task.id} draggableId={String(task.id)} index={index}>
+                {(provided) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                  >
+                    <Task task={task} onUpdate={onUpdate} onDelete={onDelete} />
+                  </div>
+                )}
+              </Draggable>
+            ))}
+            {provided.placeholder}
+          </div>
+        )}
+      </Droppable>
+    </DragDropContext>
   );
 }

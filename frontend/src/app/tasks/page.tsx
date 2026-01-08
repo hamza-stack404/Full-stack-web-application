@@ -192,6 +192,13 @@ export default function Tasks() {
     );
   }
 
+  const handleReorder = (startIndex: number, endIndex: number) => {
+    const reorderedTasks = Array.from(tasks);
+    const [removed] = reorderedTasks.splice(startIndex, 1);
+    reorderedTasks.splice(endIndex, 0, removed);
+    setTasks(reorderedTasks);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
       <header className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 shadow-sm">
@@ -260,7 +267,7 @@ export default function Tasks() {
         </div>
 
         <div className="animate-fadeInUp">
-          <TaskList tasks={filteredAndSortedTasks} onUpdate={handleUpdate} onDelete={handleDelete} />
+          <TaskList tasks={filteredAndSortedTasks} onUpdate={handleUpdate} onDelete={handleDelete} onReorder={handleReorder} />
         </div>
         {error && (
           <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-900 text-red-800 dark:text-red-200">
