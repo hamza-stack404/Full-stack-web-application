@@ -28,6 +28,7 @@ interface ApiError {
   response?: {
     data?: {
       message?: string;
+      detail?: string;
     };
   };
   message?: string;
@@ -56,8 +57,12 @@ export default function Tasks() {
         setTasks(response.data);
       } catch (err: unknown) {
         const apiError = err as ApiError;
-        setError(apiError?.response?.data?.message || 'Failed to fetch tasks');
-        console.error(err);
+        const errorMessage = apiError?.response?.data?.message ||
+                            apiError?.response?.data?.detail ||
+                            apiError?.message ||
+                            'Failed to fetch tasks';
+        setError(errorMessage);
+        console.error('Fetch tasks error:', err);
       } finally {
         setLoading(false);
       }
@@ -83,8 +88,12 @@ export default function Tasks() {
     } catch (err: unknown) {
       setTasks(tasks => tasks.filter(t => t.id !== tempId));
       const apiError = err as ApiError;
-      setError(apiError?.response?.data?.message || 'Failed to add task');
-      console.error(err);
+      const errorMessage = apiError?.response?.data?.message ||
+                          apiError?.response?.data?.detail ||
+                          apiError?.message ||
+                          'Failed to add task';
+      setError(errorMessage);
+      console.error('Add task error:', err);
     }
   };
 
@@ -97,8 +106,12 @@ export default function Tasks() {
     } catch (err: unknown) {
       setTasks(originalTasks);
       const apiError = err as ApiError;
-      setError(apiError?.response?.data?.message || 'Failed to update task');
-      console.error(err);
+      const errorMessage = apiError?.response?.data?.message ||
+                          apiError?.response?.data?.detail ||
+                          apiError?.message ||
+                          'Failed to update task';
+      setError(errorMessage);
+      console.error('Update task error:', err);
     }
   };
 
@@ -111,8 +124,12 @@ export default function Tasks() {
     } catch (err: unknown) {
       setTasks(originalTasks);
       const apiError = err as ApiError;
-      setError(apiError?.response?.data?.message || 'Failed to delete task');
-      console.error(err);
+      const errorMessage = apiError?.response?.data?.message ||
+                          apiError?.response?.data?.detail ||
+                          apiError?.message ||
+                          'Failed to delete task';
+      setError(errorMessage);
+      console.error('Delete task error:', err);
     }
   };
 
