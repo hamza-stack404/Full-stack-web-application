@@ -2,6 +2,15 @@ import axios from 'axios';
 
 const API_URL = '/api';
 
+interface TaskData {
+  title: string;
+  is_completed: boolean;
+}
+
+interface Task extends TaskData {
+  id: number;
+}
+
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
   if (!token) {
@@ -15,16 +24,17 @@ const getAuthHeaders = () => {
 };
 
 export const getTasks = () => {
-  return axios.get(`${API_URL}/tasks`, getAuthHeaders());
-};
-export const createTask = (task) => {
-  return axios.post(`${API_URL}/tasks`, task, getAuthHeaders());
+  return axios.get<Task[]>(`${API_URL}/tasks`, getAuthHeaders());
 };
 
-export const updateTask = (taskId, updatedTask) => {
-  return axios.put(`${API_URL}/tasks/${taskId}`, updatedTask, getAuthHeaders());
+export const createTask = (task: TaskData) => {
+  return axios.post<Task>(`${API_URL}/tasks`, task, getAuthHeaders());
 };
 
-export const deleteTask = (taskId) => {
+export const updateTask = (taskId: number, updatedTask: TaskData) => {
+  return axios.put<Task>(`${API_URL}/tasks/${taskId}`, updatedTask, getAuthHeaders());
+};
+
+export const deleteTask = (taskId: number) => {
   return axios.delete(`${API_URL}/tasks/${taskId}`, getAuthHeaders());
 };

@@ -3,6 +3,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Design System CSS Variables */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -121,5 +122,165 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Design System Utilities */
+@layer components {
+  /* Button Styles */
+  .btn-primary {
+    @apply px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium 
+           hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 
+           dark:from-blue-600 dark:to-blue-700;
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 rounded-lg bg-slate-200 text-slate-900 font-medium 
+           hover:bg-slate-300 hover:shadow-md transition-all duration-200 
+           dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600;
+  }
+
+  .btn-outline {
+    @apply px-4 py-2 rounded-lg border-2 border-slate-300 text-slate-900 font-medium 
+           hover:border-slate-400 hover:shadow-md transition-all duration-200 
+           dark:border-slate-600 dark:text-slate-100 dark:hover:border-slate-500;
+  }
+
+  .btn-sm {
+    @apply px-2 py-1 text-sm rounded-md;
+  }
+
+  /* Card Styles */
+  .card {
+    @apply bg-white rounded-lg border border-slate-200 shadow-sm p-4 
+           dark:bg-slate-950 dark:border-slate-800;
+  }
+
+  .card-hover {
+    @apply bg-white rounded-lg border border-slate-200 shadow-sm p-4
+           hover:shadow-lg hover:border-slate-300 transition-all duration-300
+           dark:bg-slate-950 dark:border-slate-800 dark:hover:border-slate-700;
+  }
+
+  /* Input Field Styles */
+  .input-field {
+    @apply w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-900 
+           placeholder-slate-500 transition-all duration-200 
+           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent 
+           hover:border-slate-400
+           dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100 
+           dark:placeholder-slate-400 dark:hover:border-slate-600;
+  }
+
+  .input-error {
+    @apply w-full px-3 py-2 rounded-lg border border-red-500 bg-white text-slate-900 
+           placeholder-slate-500 transition-all duration-200 
+           focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent 
+           dark:bg-slate-900 dark:text-slate-100;
+  }
+
+  /* Typography Styles */
+  .heading-1 {
+    @apply text-4xl font-bold tracking-tighter;
+  }
+
+  .heading-2 {
+    @apply text-3xl font-bold tracking-tight;
+  }
+
+  .heading-3 {
+    @apply text-2xl font-bold tracking-tight;
+  }
+
+  .text-muted {
+    @apply text-slate-600 dark:text-slate-400;
+  }
+
+  .text-small {
+    @apply text-sm text-slate-600 dark:text-slate-400;
+  }
+
+  /* Gradient Text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
+  }
+
+  /* Badge Styles */
+  .badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-success {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium 
+           bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100;
+  }
+
+  .badge-warning {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium 
+           bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100;
+  }
+
+  .badge-error {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium 
+           bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100;
+  }
+
+  /* Depth Shadow System */
+  .shadow-elevation-1 {
+    @apply shadow-sm;
+  }
+
+  .shadow-elevation-2 {
+    @apply shadow-md;
+  }
+
+  .shadow-elevation-3 {
+    @apply shadow-lg;
+  }
+
+  .shadow-elevation-4 {
+    @apply shadow-xl;
+  }
+}
+
+/* Smooth Transitions */
+@layer utilities {
+  .transition-smooth {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  .transform-gpu {
+    @apply transform will-change-transform;
+  }
+
+  /* Animations */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .animate-fadeInUp {
+    animation: fadeInUp 0.3s ease-out;
+  }
+
+  .animate-slideInRight {
+    animation: slideInRight 0.3s ease-out;
   }
 }

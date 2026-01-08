@@ -1,22 +1,37 @@
 "use client";
 
 import Task from './Task';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default function TaskList({ tasks, onUpdate, onDelete }) {
+interface TaskItem {
+  id: number;
+  title: string;
+  is_completed: boolean;
+}
+
+export default function TaskList({ 
+  tasks, 
+  onUpdate, 
+  onDelete 
+}: { 
+  tasks: TaskItem[];
+  onUpdate: (id: number, task: TaskItem) => void;
+  onDelete: (id: number) => void;
+}) {
   if (tasks.length === 0) {
     return (
-      <Card className="text-center py-12">
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold">No tasks yet!</CardTitle>
-          <CardDescription className="mt-2">Add a new task to get started.</CardDescription>
-        </CardHeader>
-      </Card>
+      <div className="card p-8 text-center">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
+          No tasks yet!
+        </h3>
+        <p className="text-muted">
+          Add a new task above to get started.
+        </p>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {tasks.map((task) => (
         <Task key={task.id} task={task} onUpdate={onUpdate} onDelete={onDelete} />
       ))}
