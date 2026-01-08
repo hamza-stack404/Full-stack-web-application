@@ -18,6 +18,7 @@ origins = [
     "http://localhost:3001",
     "https://localhost:3000",
     "https://localhost:3001",
+    "https://hamza-full-stack-web.vercel.app",
 ]
 
 # Allow all origins in production - adjust as needed
