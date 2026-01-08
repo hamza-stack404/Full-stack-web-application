@@ -2,21 +2,20 @@
   "buildCommand": "pip install -r requirements.txt",
   "builds": [
     {
-      "src": "src/main.py",
+      "src": "api/index.py",
       "use": "@vercel/python",
       "config": { 
         "maxLambdaSize": "15mb", 
         "runtime": "python3.9",
         "packageManager": "pip",
-        "useRequirementsFile": true,
-        "zeroConfig": true
+        "useRequirementsFile": true
       }
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "src/main.py"
+      "dest": "api/index.py"
     }
   ],
   "env": {
