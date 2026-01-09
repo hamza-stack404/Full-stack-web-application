@@ -8,12 +8,14 @@ import { useSwipeable } from 'react-swipeable';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2, Calendar as CalendarIcon } from "lucide-react";
 import { format } from 'date-fns';
+import { motion } from 'framer-motion';
 
 interface TaskItem {
   id: number;
   title: string;
   is_completed: boolean;
   priority: string;
+  category?: string;
   due_date?: string;
 }
 
@@ -21,6 +23,14 @@ const priorityColors: { [key: string]: { border: string, bg: string } } = {
   high: { border: 'border-red-500', bg: 'bg-red-500' },
   medium: { border: 'border-yellow-500', bg: 'bg-yellow-500' },
   low: { border: 'border-green-500', bg: 'bg-green-500' },
+};
+
+const categoryColors: { [key: string]: string } = {
+  work: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200',
+  personal: 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200',
+  shopping: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200',
+  health: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200',
+  finance: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200',
 };
 
 export default function Task({
@@ -78,7 +88,12 @@ export default function Task({
 
   return (
     <>
-      <div
+      <motion.div
+        layout
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.8 }}
+        transition={{ duration: 0.2 }}
         {...handlers}
         onClick={() => setIsDetailsModalOpen(true)}
         onKeyDown={handleKeyDown}
@@ -112,6 +127,11 @@ export default function Task({
                     {format(new Date(task.due_date), "MMM d")}
                   </div>
                 )}
+                {task.category && (
+                  <span className={`text-xs px-2 py-1 rounded-full ${categoryColors[task.category] || 'bg-gray-100 dark:bg-gray-700'}`}>
+                    {task.category}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -124,8 +144,15 @@ export default function Task({
                 {format(new Date(task.due_date), "MMM d")}
               </div>
             )}
+            {task.category && (
+              <span className={`text-xs px-2 py-1 rounded-full ${categoryColors[task.category] || 'bg-gray-100 dark:bg-gray-700'}`}>
+                {task.category}
+              </span>
+            )}
           </div>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={(e) => { e.stopPropagation(); handleDelete(); }}
             className="opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 rounded-lg
                        hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400
@@ -133,10 +160,15 @@ export default function Task({
             aria-label="Delete task"
           >
             <Trash2 className="h-4 w-4" />
-          </button>
+          </motion.button>
         </div>
-      </div>
-      <TaskDetailsModal task={task} isOpen={isDetailsModalOpen} onClose={() => setIsDetailsModalOpen(false)} />
+      </motion.div>
+      <TaskDetailsModal
+        task={task}
+        isOpen={isDetailsModalOpen}
+        onClose={() => setIsDetailsModalOpen(false)}
+        onUpdate={onUpdate}
+      />
     </>
   );
 }

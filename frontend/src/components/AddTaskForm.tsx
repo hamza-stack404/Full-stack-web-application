@@ -10,10 +10,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
-const AddTaskForm = forwardRef<any, { onAdd: (task: { title: string; is_completed: boolean; priority: string, due_date?: string }) => Promise<void> }>(({ onAdd }, ref) => {
+const AddTaskForm = forwardRef<any, { onAdd: (task: { title: string; is_completed: boolean; priority: string, category?: string, due_date?: string }) => Promise<void> }>(({ onAdd }, ref) => {
   const [title, setTitle] = useState('');
   const [priority, setPriority] = useState('medium');
+  const [category, setCategory] = useState('');
   const [date, setDate] = useState<Date | undefined>();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -29,8 +31,9 @@ const AddTaskForm = forwardRef<any, { onAdd: (task: { title: string; is_complete
     try {
       // Convert Date object to ISO string for API
       const dueDateStr = date ? date.toISOString() : undefined;
-      await onAdd({ title, is_completed: false, priority, due_date: dueDateStr });
+      await onAdd({ title, is_completed: false, priority, category: category || undefined, due_date: dueDateStr });
       setTitle('');
+      setCategory('');
       setDate(undefined);
       toast.success("Task added successfully!");
     } catch (error) {
@@ -58,6 +61,19 @@ const AddTaskForm = forwardRef<any, { onAdd: (task: { title: string; is_complete
           <SelectItem value="low">Low</SelectItem>
         </SelectContent>
       </Select>
+      <Select value={category} onValueChange={setCategory}>
+        <SelectTrigger className="w-[120px]">
+          <SelectValue placeholder="Category" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="">None</SelectItem>
+          <SelectItem value="work">Work</SelectItem>
+          <SelectItem value="personal">Personal</SelectItem>
+          <SelectItem value="shopping">Shopping</SelectItem>
+          <SelectItem value="health">Health</SelectItem>
+          <SelectItem value="finance">Finance</SelectItem>
+        </SelectContent>
+      </Select>
       <Popover>
         <PopoverTrigger asChild>
           <Button
@@ -80,10 +96,15 @@ const AddTaskForm = forwardRef<any, { onAdd: (task: { title: string; is_complete
           />
         </PopoverContent>
       </Popover>
-      <Button type="submit" className="btn-primary flex items-center gap-2 whitespace-nowrap">
+      <motion.button
+        whileHover={{ scale: 1.03 }}
+        whileTap={{ scale: 0.98 }}
+        type="submit"
+        className="btn-primary flex items-center gap-2 whitespace-nowrap"
+      >
         <Plus className="h-4 w-4" />
         Add
-      </Button>
+      </motion.button>
     </form>
   );
 });

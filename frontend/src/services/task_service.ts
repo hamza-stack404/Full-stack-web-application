@@ -24,17 +24,27 @@ const BASE_URL = getBaseURL();
 
 console.log('Task Service Base URL:', BASE_URL);
 
+export interface Subtask {
+  id: number;
+  title: string;
+  is_completed: boolean;
+}
+
 export interface TaskData {
   title: string;
   is_completed: boolean;
   priority?: string;
   due_date?: string;
+  category?: string;
+  subtasks?: Subtask[];
 }
 
 export interface Task extends TaskData {
   id: number;
   priority: string;
   due_date?: string;
+  category?: string;
+  subtasks?: Subtask[];
   updated_at?: string;
 }
 

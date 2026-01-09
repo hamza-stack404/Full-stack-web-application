@@ -3,6 +3,7 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import Task from './Task';
 import { KeyboardEvent } from 'react';
+import { motion } from 'framer-motion';
 
 interface TaskItem {
   id: number;
@@ -56,12 +57,21 @@ export default function TaskList({
             <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3">
               {tasks.map((task, index) => (
                 <Draggable key={task.id} draggableId={String(task.id)} index={index}>
-                  {(provided) => (
-                    <div
+                  {(provided, snapshot) => (
+                    <motion.div
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
                       className={index === focusedIndex ? 'ring-2 ring-blue-500' : ''}
+                      layout
+                      initial={false}
+                      animate={{
+                        scale: snapshot.isDragging ? 1.02 : 1,
+                        boxShadow: snapshot.isDragging
+                          ? '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+                          : '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                      }}
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
                     >
                       <Task
                         task={task}
@@ -69,7 +79,7 @@ export default function TaskList({
                         onDelete={onDelete}
                         isFocused={index === focusedIndex}
                       />
-                    </div>
+                    </motion.div>
                   )}
                 </Draggable>
               ))}

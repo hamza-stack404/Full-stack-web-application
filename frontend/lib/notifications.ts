@@ -15,3 +15,15 @@ export const checkUpcomingTasks = (tasks: Task[]) => {
   // This function would typically interact with task data and potentially
   // trigger browser notifications.
 };
+
+export const showTaskCreatedNotification = (task: Task) => {
+  toast.success("Task Created", {
+    description: `Task "${task.title}" has been successfully created.`,
+  });
+};
+
+export const showTaskCompletedNotification = (task: Task) => {
+  toast.info("Task Completed", {
+    description: `Task "${task.title}" has been marked as completed.`,
+  });
+};

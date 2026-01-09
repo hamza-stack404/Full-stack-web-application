@@ -19,7 +19,7 @@ import Sidebar from '@/components/Sidebar';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import FloatingActionButton from '@/components/FloatingActionButton';
 import GlobalSearchModal from '@/components/GlobalSearchModal';
-import { requestNotificationPermission, checkUpcomingTasks } from '@/lib/notifications';
+import { requestNotificationPermission, checkUpcomingTasks, showTaskCompletedNotification, showTaskCreatedNotification } from '@/lib/notifications';
 import { useKeyboardShortcuts } from '@/src/hooks/useKeyboardShortcuts';
 import { useKeyboardNavigation } from '@/src/hooks/useKeyboardNavigation';
 import KeyboardShortcutsModal from '@/src/components/KeyboardShortcutsModal';
@@ -29,7 +29,9 @@ interface TaskItem {
   title: string;
   is_completed: boolean;
   priority: string;
+  category?: string;
   due_date?: string;
+  subtasks: any[];
 }
 
 interface ApiError {
@@ -48,6 +50,7 @@ export default function Tasks() {
   const { error, setError } = useError();
   const router = useRouter();
   const [priorityFilter, setPriorityFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortBy, setSortBy] = useState('none');
   const [searchTerm, setSearchTerm] = useState('');
   const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(false);
@@ -70,6 +73,10 @@ export default function Tasks() {
       filtered = filtered.filter(task => task.priority === priorityFilter);
     }
 
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter(task => task.category === categoryFilter);
+    }
+
     if (sortBy === 'due_date_asc') {
       filtered.sort((a, b) => {
         if (!a.due_date) return 1;
@@ -85,7 +92,7 @@ export default function Tasks() {
     }
 
     return filtered;
-  }, [tasks, priorityFilter, sortBy, searchTerm]);
+  }, [tasks, priorityFilter, categoryFilter, sortBy, searchTerm]);
 
 
   // Keyboard shortcuts
@@ -180,14 +187,15 @@ export default function Tasks() {
     }
   }, [router, setError]);
 
-  const handleAdd = async (newTask: { title: string; is_completed: boolean; priority: string, due_date?: string }) => {
+  const handleAdd = async (newTask: { title: string; is_completed: boolean; priority: string, category?: string, due_date?: string }) => {
     const tempId = Date.now();
-    const optimisticTask: TaskItem = { ...newTask, id: tempId };
+    const optimisticTask: TaskItem = { ...newTask, id: tempId, subtasks: [] };
     setTasks([...tasks, optimisticTask]);
 
     try {
       const response = await createTask(newTask);
-      setTasks(tasks => tasks.map(t => t.id === tempId ? response.data as TaskItem : t));
+      setTasks(tasks => tasks.map(t => t.id === tempId ? { ...(response.data as TaskItem), subtasks: [] } : t));
+      showTaskCreatedNotification(optimisticTask);
     } catch (err: unknown) {
       setTasks(tasks => tasks.filter(t => t.id !== tempId));
       const apiError = err as ApiError;
@@ -203,10 +211,18 @@ export default function Tasks() {
 
   const handleUpdate = async (id: number, updatedTask: TaskItem) => {
     const originalTasks = tasks;
+    const previousTask = tasks.find(task => task.id === id);
     setTasks(tasks.map((task: TaskItem) => (task.id === id ? updatedTask : task)));
 
     try {
-      await updateTask(id, updatedTask);
+      // Only send fields that the backend supports
+      const { id, ...taskForApi } = updatedTask;
+      await updateTask(id, taskForApi);
+
+      // Show notification if task was marked as completed
+      if (previousTask && !previousTask.is_completed && updatedTask.is_completed) {
+        showTaskCompletedNotification(updatedTask);
+      }
     } catch (err: unknown) {
       setTasks(originalTasks);
       const apiError = err as ApiError;
@@ -275,6 +291,7 @@ export default function Tasks() {
             <div className="flex justify-between items-center">
               <div className="flex gap-4">
                 <Skeleton className="h-9 w-[240px]" />
+                <Skeleton className="h-9 w-[180px]" />
                 <Skeleton className="h-9 w-[180px]" />
                 <Skeleton className="h-9 w-[180px]" />
               </div>
@@ -369,6 +386,22 @@ export default function Tasks() {
                     <SelectItem value="high">High</SelectItem>
                     <SelectItem value="medium">Medium</SelectItem>
                     <SelectItem value="low">Low</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Tooltip>
+              <Tooltip text="Filter by category">
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Filter by category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    <SelectItem value="">No Category</SelectItem>
+                    <SelectItem value="work">Work</SelectItem>
+                    <SelectItem value="personal">Personal</SelectItem>
+                    <SelectItem value="shopping">Shopping</SelectItem>
+                    <SelectItem value="health">Health</SelectItem>
+                    <SelectItem value="finance">Finance</SelectItem>
                   </SelectContent>
                 </Select>
               </Tooltip>
