@@ -27,6 +27,8 @@ console.log('Task Service Base URL:', BASE_URL);
 interface TaskData {
   title: string;
   is_completed: boolean;
+  priority?: string;
+  due_date?: string;
 }
 
 interface Task extends TaskData {
@@ -41,7 +43,7 @@ const apiClient = axios.create({
   baseURL: BASE_URL,
 });
 
-// Add request interceptor to include auth token
+// Add request interceptor to include auth token and handle data transformation
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -49,6 +51,22 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     config.headers['Content-Type'] = 'application/json';
+
+    // Transform request data to ensure proper format for backend
+    if (config.data && config.method === 'post') {
+      // Convert date objects to ISO strings for task creation
+      if (config.data.due_date && config.data.due_date instanceof Date) {
+        config.data.due_date = config.data.due_date.toISOString();
+      }
+    }
+
+    if (config.data && config.method === 'put') {
+      // Convert date objects to ISO strings for task updates
+      if (config.data.due_date && config.data.due_date instanceof Date) {
+        config.data.due_date = config.data.due_date.toISOString();
+      }
+    }
+
     return config;
   },
   (error) => {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import TaskDetailsModal from './TaskDetailsModal';
 import { FileText } from 'lucide-react';
 import { useSwipeable } from 'react-swipeable';
@@ -22,42 +23,83 @@ const priorityColors: { [key: string]: { border: string, bg: string } } = {
   low: { border: 'border-green-500', bg: 'bg-green-500' },
 };
 
-export default function Task({ 
-  task, 
-  onUpdate, 
-  onDelete 
-}: { 
+export default function Task({
+  task,
+  onUpdate,
+  onDelete,
+  isFocused = false
+}: {
   task: TaskItem;
   onUpdate: (id: number, task: TaskItem) => void;
   onDelete: (id: number) => void;
+  isFocused?: boolean;
 }) {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
+  const handleUpdate = (updatedTask: TaskItem) => {
+    onUpdate(task.id, updatedTask);
+    toast.success("Task updated successfully!");
+  };
+
+  const handleDelete = () => {
+    onDelete(task.id);
+    toast.success("Task deleted successfully!");
+  };
+
   const handlers = useSwipeable({
-    onSwipedLeft: () => onDelete(task.id),
-    onSwipedRight: () => onUpdate(task.id, { ...task, is_completed: true }),
+    onSwipedLeft: () => handleDelete(),
+    onSwipedRight: () => handleUpdate({ ...task, is_completed: true }),
     preventScrollOnSwipe: true,
     trackMouse: true
   });
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    switch (e.key) {
+      case 'Enter':
+        e.preventDefault();
+        setIsDetailsModalOpen(true);
+        break;
+      case 'Delete':
+        e.preventDefault();
+        handleDelete();
+        break;
+      case ' ':
+        e.preventDefault();
+        handleUpdate({ ...task, is_completed: !task.is_completed });
+        break;
+      case 'ArrowUp':
+      case 'ArrowDown':
+        // Allow arrow keys to be handled by parent
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <>
-      <div {...handlers} onClick={() => setIsDetailsModalOpen(true)} className={`card-hover flex flex-col sm:flex-row items-start sm:items-center justify-between group p-4 gap-4 bg-white dark:bg-slate-900 rounded-lg shadow-sm border-l-4 ${priorityColors[task.priority]?.border}`}>
+      <div
+        {...handlers}
+        onClick={() => setIsDetailsModalOpen(true)}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        className={`card-hover flex flex-col sm:flex-row items-start sm:items-center justify-between group p-4 gap-4 bg-white dark:bg-slate-900 rounded-lg shadow-sm border-l-4 ${priorityColors[task.priority]?.border} ${isFocused ? 'ring-2 ring-blue-500' : ''}`}
+      >
         <div className="flex items-start sm:items-center gap-4 flex-1">
           <FileText className="h-6 w-6 text-slate-400" />
           <div className="flex items-center gap-3 flex-1">
             <Checkbox
               id={`task-${task.id}`}
               checked={task.is_completed}
-              onCheckedChange={() => onUpdate(task.id, { ...task, is_completed: !task.is_completed })}
+              onCheckedChange={() => handleUpdate({ ...task, is_completed: !task.is_completed })}
               className="w-5 h-5 mt-1 sm:mt-0"
             />
             <div className="flex flex-col flex-1">
               <label
                 htmlFor={`task-${task.id}`}
                 className={`flex-1 text-base leading-none cursor-pointer transition-all duration-200 ${
-                  task.is_completed 
-                    ? 'line-through text-slate-400 dark:text-slate-600' 
+                  task.is_completed
+                    ? 'line-through text-slate-400 dark:text-slate-600'
                     : 'text-slate-900 dark:text-slate-100'
                 }`}
               >
@@ -84,8 +126,8 @@ export default function Task({
             )}
           </div>
           <button
-            onClick={(e) => { e.stopPropagation(); onDelete(task.id); }}
-            className="opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 rounded-lg 
+            onClick={(e) => { e.stopPropagation(); handleDelete(); }}
+            className="opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 rounded-lg
                        hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400
                        hover:text-red-700 dark:hover:text-red-300"
             aria-label="Delete task"

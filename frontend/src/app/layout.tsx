@@ -3,6 +3,7 @@ import { Inter, Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import { ErrorProvider } from "../providers/ErrorProvider";
 import { ThemeProvider } from "../providers/ThemeProvider";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -32,6 +33,7 @@ export default function RootLayout({
         <ThemeProvider>
           <ErrorProvider>
             {children}
+            <Toaster />
           </ErrorProvider>
         </ThemeProvider>
       </body>

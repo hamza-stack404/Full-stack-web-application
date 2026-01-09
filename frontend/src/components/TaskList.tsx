@@ -2,6 +2,7 @@
 
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import Task from './Task';
+import { KeyboardEvent } from 'react';
 
 interface TaskItem {
   id: number;
@@ -11,16 +12,20 @@ interface TaskItem {
   due_date?: string;
 }
 
-export default function TaskList({ 
-  tasks, 
-  onUpdate, 
+export default function TaskList({
+  tasks,
+  onUpdate,
   onDelete,
-  onReorder 
-}: { 
+  onReorder,
+  focusedIndex,
+  onKeyDown
+}: {
   tasks: TaskItem[];
   onUpdate: (id: number, task: TaskItem) => void;
   onDelete: (id: number) => void;
   onReorder: (startIndex: number, endIndex: number) => void;
+  focusedIndex: number | null;
+  onKeyDown?: (e: KeyboardEvent) => void;
 }) {
   if (tasks.length === 0) {
     return (
@@ -44,27 +49,35 @@ export default function TaskList({
   };
 
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
-      <Droppable droppableId="tasks">
-        {(provided) => (
-          <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3">
-            {tasks.map((task, index) => (
-              <Draggable key={task.id} draggableId={String(task.id)} index={index}>
-                {(provided) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.draggableProps}
-                    {...provided.dragHandleProps}
-                  >
-                    <Task task={task} onUpdate={onUpdate} onDelete={onDelete} />
-                  </div>
-                )}
-              </Draggable>
-            ))}
-            {provided.placeholder}
-          </div>
-        )}
-      </Droppable>
-    </DragDropContext>
+    <div onKeyDown={onKeyDown}>
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="tasks">
+          {(provided) => (
+            <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3">
+              {tasks.map((task, index) => (
+                <Draggable key={task.id} draggableId={String(task.id)} index={index}>
+                  {(provided) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                      className={index === focusedIndex ? 'ring-2 ring-blue-500' : ''}
+                    >
+                      <Task
+                        task={task}
+                        onUpdate={onUpdate}
+                        onDelete={onDelete}
+                        isFocused={index === focusedIndex}
+                      />
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
+    </div>
   );
 }

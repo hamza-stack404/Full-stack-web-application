@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, forwardRef, useImperativeHandle, useRef } from 'react';
+import { toast } from "sonner";
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Plus, Calendar as CalendarIcon } from 'lucide-react';
@@ -10,22 +11,37 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
-export default function AddTaskForm({ onAdd }: { onAdd: (task: { title: string; is_completed: boolean; priority: string, due_date: Date | undefined }) => Promise<void> }) {
+const AddTaskForm = forwardRef<any, { onAdd: (task: { title: string; is_completed: boolean; priority: string, due_date?: string }) => Promise<void> }>(({ onAdd }, ref) => {
   const [title, setTitle] = useState('');
   const [priority, setPriority] = useState('medium');
   const [date, setDate] = useState<Date | undefined>();
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useImperativeHandle(ref, () => ({
+    focus: () => {
+      inputRef.current?.focus();
+    }
+  }));
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
-    onAdd({ title, is_completed: false, priority, due_date: date });
-    setTitle('');
-    setDate(undefined);
+    try {
+      // Convert Date object to ISO string for API
+      const dueDateStr = date ? date.toISOString() : undefined;
+      await onAdd({ title, is_completed: false, priority, due_date: dueDateStr });
+      setTitle('');
+      setDate(undefined);
+      toast.success("Task added successfully!");
+    } catch (error) {
+      toast.error("Failed to add task.");
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2">
       <Input
+        ref={inputRef}
         type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
@@ -70,4 +86,8 @@ export default function AddTaskForm({ onAdd }: { onAdd: (task: { title: string; 
       </Button>
     </form>
   );
-}
+});
+
+AddTaskForm.displayName = 'AddTaskForm';
+
+export default AddTaskForm;

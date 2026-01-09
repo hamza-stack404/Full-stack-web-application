@@ -8,7 +8,7 @@ import TaskList from '@/src/components/TaskList';
 import AddTaskForm from '@/src/components/AddTaskForm';
 import { useError } from '@/src/providers/ErrorProvider';
 import ThemeToggle from '@/src/components/ThemeToggle';
-import { LogOut, Menu } from 'lucide-react';
+import { LogOut, Menu, Plus } from 'lucide-react';
 import { Tooltip } from '@/src/components/ui/tooltip';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -19,6 +19,10 @@ import Sidebar from '@/components/Sidebar';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import FloatingActionButton from '@/components/FloatingActionButton';
 import GlobalSearchModal from '@/components/GlobalSearchModal';
+import { requestNotificationPermission, checkUpcomingTasks } from '@/lib/notifications';
+import { useKeyboardShortcuts } from '@/src/hooks/useKeyboardShortcuts';
+import { useKeyboardNavigation } from '@/src/hooks/useKeyboardNavigation';
+import KeyboardShortcutsModal from '@/src/components/KeyboardShortcutsModal';
 
 interface TaskItem {
   id: number;
@@ -49,7 +53,44 @@ export default function Tasks() {
   const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showFab, setShowFab] = useState(false);
+  const [selectedTaskIndex, setSelectedTaskIndex] = useState<number | null>(null);
   const addTaskFormRef = useRef<HTMLDivElement>(null);
+  const addTaskInputRef = useRef<HTMLInputElement>(null);
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    'ctrl+n': () => {
+      addTaskInputRef.current?.focus();
+    },
+    'escape': () => {
+      setSelectedTaskIndex(null);
+      resetFocus();
+    },
+    'delete': () => {
+      if (focusedIndex !== null && filteredAndSortedTasks[focusedIndex]) {
+        handleDelete(filteredAndSortedTasks[focusedIndex].id);
+      }
+    }
+  });
+
+  // Keyboard navigation for tasks
+  const { focusedIndex, handleKeyDown, resetFocus } = useKeyboardNavigation(
+    filteredAndSortedTasks,
+    (index) => setSelectedTaskIndex(index)
+  );
+
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      checkUpcomingTasks(tasks);
+    }, 60000); // Check every minute
+
+    return () => clearInterval(interval);
+  }, [tasks]);
+
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -280,6 +321,9 @@ export default function Tasks() {
             </div>
             <div className="flex items-center gap-4 w-full sm:w-auto">
               <GlobalSearchModal />
+              <Tooltip text="Keyboard shortcuts">
+                <KeyboardShortcutsModal />
+              </Tooltip>
               <Tooltip text="Toggle theme">
                 <ThemeToggle />
               </Tooltip>
@@ -299,7 +343,7 @@ export default function Tasks() {
 
           <div className="card-hover" ref={addTaskFormRef}>
             <h2 className="text-xl font-semibold mb-4">Add a new task</h2>
-            <AddTaskForm onAdd={handleAdd} />
+            <AddTaskForm ref={addTaskInputRef} onAdd={handleAdd} />
           </div>
 
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
@@ -341,8 +385,19 @@ export default function Tasks() {
             </div>
           </div>
 
-          <div className="animate-fadeInUp">
-            <TaskList tasks={filteredAndSortedTasks} onUpdate={handleUpdate} onDelete={handleDelete} onReorder={handleReorder} />
+          <div
+            className="animate-fadeInUp"
+            onKeyDown={handleKeyDown}
+            tabIndex={0}
+          >
+            <TaskList
+              tasks={filteredAndSortedTasks}
+              onUpdate={handleUpdate}
+              onDelete={handleDelete}
+              onReorder={handleReorder}
+              focusedIndex={focusedIndex}
+              onKeyDown={handleKeyDown}
+            />
           </div>
           {error && (
             <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-900 text-red-800 dark:text-red-200">
