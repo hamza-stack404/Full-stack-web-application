@@ -1,4 +1,4 @@
-import { Task } from "@/services/task_service";
+import { Task } from "@/src/services/task_service";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 
