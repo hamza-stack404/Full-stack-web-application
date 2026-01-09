@@ -164,7 +164,11 @@ export default function Tasks() {
     const fetchTasks = async () => {
       try {
         const response = await getTasks();
-        setTasks(response.data);
+        const tasksWithSubtasks = response.data.map(task => ({
+          ...task,
+          subtasks: task.subtasks || [],
+        }));
+        setTasks(tasksWithSubtasks);
       } catch (err: unknown) {
         const apiError = err as ApiError;
         const errorMessage = apiError?.response?.data?.message ||
