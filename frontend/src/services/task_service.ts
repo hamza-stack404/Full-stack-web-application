@@ -24,14 +24,14 @@ const BASE_URL = getBaseURL();
 
 console.log('Task Service Base URL:', BASE_URL);
 
-interface TaskData {
+export interface TaskData {
   title: string;
   is_completed: boolean;
   priority?: string;
   due_date?: string;
 }
 
-interface Task extends TaskData {
+export interface Task extends TaskData {
   id: number;
   priority: string;
   due_date?: string;

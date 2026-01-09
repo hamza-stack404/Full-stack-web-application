@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import AddTaskForm from '@/src/components/AddTaskForm';
 
 interface FloatingActionButtonProps {
-  onAddTask: (task: { title: string; is_completed: boolean; priority: string; due_date: Date | undefined }) => Promise<void>;
+  onAddTask: (task: { title: string; is_completed: boolean; priority: string; due_date?: string }) => Promise<void>;
 }
 
 const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({ onAddTask }) => {
@@ -26,7 +26,7 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({ onAddTask }
     return () => window.removeEventListener('keydown', handleEsc);
   }, []);
 
-  const handleAddTask = async (task: { title: string; is_completed: boolean; priority: string; due_date: Date | undefined }) => {
+  const handleAddTask = async (task: { title: string; is_completed: boolean; priority: string; due_date?: string }) => {
 
       await onAddTask(task);
 

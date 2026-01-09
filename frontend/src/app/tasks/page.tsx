@@ -57,6 +57,37 @@ export default function Tasks() {
   const addTaskFormRef = useRef<HTMLDivElement>(null);
   const addTaskInputRef = useRef<HTMLInputElement>(null);
 
+  const filteredAndSortedTasks = useMemo(() => {
+    let filtered = tasks;
+
+    if (searchTerm) {
+      filtered = filtered.filter(task =>
+        task.title.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (priorityFilter !== 'all') {
+      filtered = filtered.filter(task => task.priority === priorityFilter);
+    }
+
+    if (sortBy === 'due_date_asc') {
+      filtered.sort((a, b) => {
+        if (!a.due_date) return 1;
+        if (!b.due_date) return -1;
+        return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+      });
+    } else if (sortBy === 'due_date_desc') {
+      filtered.sort((a, b) => {
+        if (!a.due_date) return 1;
+        if (!b.due_date) return -1;
+        return new Date(b.due_date).getTime() - new Date(a.due_date).getTime();
+      });
+    }
+
+    return filtered;
+  }, [tasks, priorityFilter, sortBy, searchTerm]);
+
+
   // Keyboard shortcuts
   useKeyboardShortcuts({
     'ctrl+n': () => {
@@ -149,9 +180,9 @@ export default function Tasks() {
     }
   }, [router, setError]);
 
-  const handleAdd = async (newTask: { title: string; is_completed: boolean; priority: string, due_date: Date | undefined }) => {
+  const handleAdd = async (newTask: { title: string; is_completed: boolean; priority: string, due_date?: string }) => {
     const tempId = Date.now();
-    const optimisticTask: TaskItem = { ...newTask, id: tempId, due_date: newTask.due_date?.toString() };
+    const optimisticTask: TaskItem = { ...newTask, id: tempId };
     setTasks([...tasks, optimisticTask]);
 
     try {
@@ -168,6 +199,7 @@ export default function Tasks() {
       console.error('Add task error:', err);
     }
   };
+
 
   const handleUpdate = async (id: number, updatedTask: TaskItem) => {
     const originalTasks = tasks;
@@ -209,36 +241,6 @@ export default function Tasks() {
     localStorage.removeItem('token');
     router.push('/login');
   };
-
-  const filteredAndSortedTasks = useMemo(() => {
-    let filtered = tasks;
-
-    if (searchTerm) {
-      filtered = filtered.filter(task =>
-        task.title.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (priorityFilter !== 'all') {
-      filtered = filtered.filter(task => task.priority === priorityFilter);
-    }
-
-    if (sortBy === 'due_date_asc') {
-      filtered.sort((a, b) => {
-        if (!a.due_date) return 1;
-        if (!b.due_date) return -1;
-        return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
-      });
-    } else if (sortBy === 'due_date_desc') {
-      filtered.sort((a, b) => {
-        if (!a.due_date) return 1;
-        if (!b.due_date) return -1;
-        return new Date(b.due_date).getTime() - new Date(a.due_date).getTime();
-      });
-    }
-
-    return filtered;
-  }, [tasks, priorityFilter, sortBy, searchTerm]);
 
 
   if (loading) {

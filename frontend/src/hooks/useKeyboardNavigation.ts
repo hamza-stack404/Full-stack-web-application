@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, KeyboardEvent } from 'react';
 
 export const useKeyboardNavigation = (items: any[], onSelect: (index: number) => void) => {
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
@@ -12,7 +12,7 @@ export const useKeyboardNavigation = (items: any[], onSelect: (index: number) =>
     }
   }, [items.length]);
 
-  const handleKeyDown = (e: KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent<Element>) => {
     if (items.length === 0) return;
 
     switch (e.key) {
