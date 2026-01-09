@@ -57,7 +57,7 @@ authClient.interceptors.response.use(
 
 export const signup = async (username: string, email: string, password: string) => {
   try {
-    const url = isDevelopment ? '/api/signup' : '/signup';
+    const url = '/api/signup';
     const response = await authClient.post(url, {
       username,
       email,
@@ -82,7 +82,7 @@ export const signup = async (username: string, email: string, password: string) 
 
 export const login = async (email: string, password: string) => {
   try {
-    const url = isDevelopment ? '/api/login' : '/login';
+    const url = '/api/login';
     const response = await authClient.post(url, new URLSearchParams({
       username: email,
       password: password,

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter, Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import { ErrorProvider } from "../providers/ErrorProvider";
-import BottomNav from "../components/BottomNav";
 import { ThemeProvider } from "../providers/ThemeProvider";
 
 const inter = Inter({
@@ -33,7 +32,6 @@ export default function RootLayout({
         <ThemeProvider>
           <ErrorProvider>
             {children}
-            <BottomNav />
           </ErrorProvider>
         </ThemeProvider>
       </body>

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Home, ListTodo, User, Settings, ChevronDown, ChevronRight } from 'lucide-react';
+import { Menu, X, Home, ListTodo, User, Settings, ChevronDown, ChevronRight, LayoutDashboard } from 'lucide-react';
 import { Button } from './ui/button';
 
 interface NavItem {
@@ -27,9 +27,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
 
   const navItems: NavItem[] = [
     {
+      title: 'Home',
+      href: '/tasks',
+      icon: <Home className="h-4 w-4" />,
+    },
+    {
       title: 'Dashboard',
       href: '/dashboard',
-      icon: <Home className="h-4 w-4" />,
+      icon: <LayoutDashboard className="h-4 w-4" />,
     },
     {
       title: 'Tasks',
@@ -98,7 +103,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       <aside 
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0 lg:static lg:inset-0`}
+        }`}
       >
         <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800">
           <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">Todo App</h1>

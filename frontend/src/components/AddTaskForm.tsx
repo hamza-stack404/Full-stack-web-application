@@ -24,7 +24,7 @@ export default function AddTaskForm({ onAdd }: { onAdd: (task: { title: string; 
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2">
+    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2">
       <Input
         type="text"
         value={title}

@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react';
 import { Plus, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
-import AddTaskForm from './AddTaskForm';
+import AddTaskForm from '@/src/components/AddTaskForm';
 
 interface FloatingActionButtonProps {
-  onAddTask: (task: { title: string; is_completed: boolean; priority: string; due_date: Date | undefined }) => void;
+  onAddTask: (task: { title: string; is_completed: boolean; priority: string; due_date: Date | undefined }) => Promise<void>;
 }
 
 const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({ onAddTask }) => {
@@ -26,10 +26,13 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({ onAddTask }
     return () => window.removeEventListener('keydown', handleEsc);
   }, []);
 
-  const handleAddTask = (task: { title: string; is_completed: boolean; priority: string; due_date: Date | undefined }) => {
-    onAddTask(task);
-    setShowModal(false);
-  };
+  const handleAddTask = async (task: { title: string; is_completed: boolean; priority: string; due_date: Date | undefined }) => {
+
+      await onAddTask(task);
+
+      setShowModal(false);
+
+    };
 
   return (
     <>

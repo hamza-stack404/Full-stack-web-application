@@ -1,9 +1,23 @@
 import axios from 'axios';
 
+const isDevelopment = typeof window !== 'undefined' &&
+                    (window.location.hostname === 'localhost' ||
+                     window.location.hostname === '127.0.0.1');
+
 // Use relative paths for development (with Next.js rewrites) and absolute for production
 const getBaseURL = () => {
+  if (isDevelopment) {
+    // For development, use relative paths that will be rewritten by Next.js
+    return '';
+  }
+
   // For production, use the environment variable or fallback
-  return process.env.NEXT_PUBLIC_API_URL || '';
+  // Remove /api suffix since we'll add it explicitly in the calls
+  const envUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (envUrl && envUrl.endsWith('/api')) {
+    return envUrl.slice(0, -4); // Remove '/api' suffix
+  }
+  return envUrl || 'https://hamza-todo-backend.vercel.app'; // Base URL without /api
 };
 
 const BASE_URL = getBaseURL();
