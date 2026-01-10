@@ -5,6 +5,12 @@ import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, en
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
+interface Subtask {
+  id: number;
+  title: string;
+  is_completed: boolean;
+}
+
 interface Task {
   id: number;
   title: string;
@@ -12,7 +18,7 @@ interface Task {
   priority: string;
   category?: string;
   due_date?: string;
-  subtasks?: any[];
+  subtasks: Subtask[];
 }
 
 interface CalendarViewProps {

@@ -23,7 +23,7 @@ interface TaskItem {
   is_completed: boolean;
   priority: string;
   category?: string;
-  subtasks?: Subtask[];
+  subtasks: Subtask[];
   due_date?: string;
 }
 
@@ -31,11 +31,11 @@ interface TaskDetailsModalProps {
   task: TaskItem;
   isOpen: boolean;
   onClose: () => void;
-  onUpdate: (id: number, updatedTask: TaskItem) => void;
+  onUpdate: (id: number, updatedTask: TaskItem) => Promise<void> | void;
 }
 
 export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate }: TaskDetailsModalProps) {
-  const [subtasks, setSubtasks] = useState(task.subtasks || []);
+  const [subtasks, setSubtasks] = useState(task.subtasks);
 
   // Update subtasks when they change
   useEffect(() => {

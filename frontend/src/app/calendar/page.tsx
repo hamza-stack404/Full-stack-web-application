@@ -9,11 +9,27 @@ import { LogOut, Menu } from 'lucide-react';
 import { Tooltip } from '../../components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
 import CalendarView from '../../components/CalendarView';
-import { Task } from '../../services/task_service';
 import Sidebar from '@/components/Sidebar';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import GlobalSearchModal from '@/components/GlobalSearchModal';
 import TaskDetailsModal from '@/src/components/TaskDetailsModal';
+
+interface Subtask {
+  id: number;
+  title: string;
+  is_completed: boolean;
+}
+
+interface TaskItem {
+  id: number;
+  title: string;
+  is_completed: boolean;
+  priority: string;
+  category?: string;
+  due_date?: string;
+  subtasks: Subtask[];
+  updated_at?: string;
+}
 
 interface ApiError {
   response?: {
@@ -25,9 +41,9 @@ interface ApiError {
 }
 
 export default function CalendarPage() {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const { error, setError } = useError();
   const router = useRouter();
@@ -43,7 +59,12 @@ export default function CalendarPage() {
     const fetchTasks = async () => {
       try {
         const response = await getTasks();
-        setTasks(response.data);
+        const tasksWithSubtasks = response.data.map(task => ({
+          ...task,
+          priority: task.priority || 'low',
+          subtasks: task.subtasks || [],
+        }));
+        setTasks(tasksWithSubtasks);
       } catch (err: unknown) {
         const apiError = err as ApiError;
         setError(apiError?.response?.data?.message || 'Failed to fetch tasks');
@@ -56,12 +77,12 @@ export default function CalendarPage() {
     fetchTasks();
   }, [setError, router]);
 
-  const handleTaskClick = (task: Task) => {
+  const handleTaskClick = (task: TaskItem) => {
     setSelectedTask(task);
     setIsTaskModalOpen(true);
   };
 
-  const handleUpdate = (id: number, updatedTask: Task) => {
+  const handleUpdate = (id: number, updatedTask: TaskItem) => {
     setTasks(tasks.map(task => task.id === id ? updatedTask : task));
   };
 

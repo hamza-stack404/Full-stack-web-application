@@ -9,10 +9,26 @@ import { LogOut, Menu } from 'lucide-react';
 import { Tooltip } from '../../components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
 import KanbanBoard from '../../components/KanbanBoard';
-import { Task } from '../../services/task_service';
 import Sidebar from '@/components/Sidebar';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import GlobalSearchModal from '@/components/GlobalSearchModal';
+
+interface Subtask {
+  id: number;
+  title: string;
+  is_completed: boolean;
+}
+
+interface TaskItem {
+  id: number;
+  title: string;
+  is_completed: boolean;
+  priority: string;
+  category?: string;
+  due_date?: string;
+  subtasks: Subtask[];
+  updated_at?: string;
+}
 
 interface ApiError {
   response?: {
@@ -25,7 +41,7 @@ interface ApiError {
 }
 
 export default function KanbanPage() {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { error, setError } = useError();
   const router = useRouter();
@@ -41,7 +57,12 @@ export default function KanbanPage() {
     const fetchTasks = async () => {
       try {
         const response = await getTasks();
-        setTasks(response.data);
+        const tasksWithSubtasks = response.data.map(task => ({
+          ...task,
+          priority: task.priority || 'low',
+          subtasks: task.subtasks || [],
+        }));
+        setTasks(tasksWithSubtasks);
       } catch (err: unknown) {
         const apiError = err as ApiError;
         setError(apiError?.response?.data?.message || 'Failed to fetch tasks');
@@ -54,13 +75,13 @@ export default function KanbanPage() {
     fetchTasks();
   }, [setError, router]);
 
-  const handleUpdate = async (id: number, updatedTask: Task) => {
+  const handleUpdate = async (id: number, updatedTask: TaskItem) => {
     const originalTasks = tasks;
-    setTasks(tasks.map((task: Task) => (task.id === id ? updatedTask : task)));
+    setTasks(tasks.map((task: TaskItem) => (task.id === id ? updatedTask : task)));
 
     try {
-      const { id, updated_at, ...taskForApi } = updatedTask;
-      await updateTask(id, taskForApi);
+      const { id: taskId, updated_at, ...taskForApi } = updatedTask;
+      await updateTask(taskId, taskForApi);
     } catch (err: unknown) {
       setTasks(originalTasks);
       const apiError = err as ApiError;
@@ -75,12 +96,12 @@ export default function KanbanPage() {
 
   const handleAdd = async (newTask: { title: string; is_completed: boolean; priority: string, category?: string, due_date?: string }) => {
     const tempId = Date.now();
-    const optimisticTask: Task = { ...newTask, id: tempId, subtasks: [] };
+    const optimisticTask: TaskItem = { ...newTask, id: tempId, subtasks: [] };
     setTasks([...tasks, optimisticTask]);
 
     try {
       const response = await createTask(newTask);
-      setTasks(tasks => tasks.map(t => t.id === tempId ? { ...(response.data as Task), subtasks: [] } : t));
+      setTasks(tasks => tasks.map(t => t.id === tempId ? { ...(response.data as TaskItem), subtasks: response.data.subtasks || [] } : t));
     } catch (err: unknown) {
       setTasks(tasks => tasks.filter(t => t.id !== tempId));
       const apiError = err as ApiError;
@@ -95,7 +116,7 @@ export default function KanbanPage() {
 
   const handleDelete = async (id: number) => {
     const originalTasks = tasks;
-    setTasks(tasks.filter((task: Task) => task.id !== id));
+    setTasks(tasks.filter((task: TaskItem) => task.id !== id));
 
     try {
       await deleteTask(id);
@@ -110,7 +131,6 @@ export default function KanbanPage() {
       console.error('Delete task error:', err);
     }
   };
-
   const handleLogout = () => {
     localStorage.removeItem('token');
     router.push('/login');

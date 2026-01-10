@@ -7,6 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, MoreHorizontal } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+interface Subtask {
+  id: number;
+  title: string;
+  is_completed: boolean;
+}
+
 interface Task {
   id: number;
   title: string;
@@ -14,7 +20,7 @@ interface Task {
   priority: string;
   category?: string;
   due_date?: string;
-  subtasks?: any[];
+  subtasks: Subtask[];
 }
 
 interface Column {
@@ -23,9 +29,10 @@ interface Column {
   taskIds: number[];
 }
 
+
 interface KanbanBoardProps {
   tasks: Task[];
-  onUpdate: (id: number, updatedTask: Task) => void;
+  onUpdate: (id: number, updatedTask: Task) => Promise<void> | void;
   onDelete: (id: number) => void;
   onAdd: (newTask: { title: string; is_completed: boolean; priority: string, category?: string, due_date?: string }) => void;
 }
@@ -165,19 +172,10 @@ export default function KanbanBoard({ tasks, onUpdate, onDelete, onAdd }: Kanban
                       return (
                         <Draggable key={task.id} draggableId={String(task.id)} index={index}>
                           {(provided, snapshot) => (
-                            <motion.div
+                            <div
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              layout
-                              initial={false}
-                              animate={{
-                                scale: snapshot.isDragging ? 1.02 : 1,
-                                boxShadow: snapshot.isDragging 
-                                  ? '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' 
-                                  : '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
-                              }}
-                              transition={{ type: "spring", stiffness: 500, damping: 30 }}
                               className="mb-3"
                             >
                               <Card className={`bg-white dark:bg-slate-800 shadow-sm ${task.is_completed ? 'opacity-70' : ''}`}>
@@ -211,7 +209,7 @@ export default function KanbanBoard({ tasks, onUpdate, onDelete, onAdd }: Kanban
                                   )}
                                 </CardContent>
                               </Card>
-                            </motion.div>
+                            </div>
                           )}
                         </Draggable>
                       );

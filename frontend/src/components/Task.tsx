@@ -10,6 +10,12 @@ import { Trash2, Calendar as CalendarIcon } from "lucide-react";
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 
+interface Subtask {
+  id: number;
+  title: string;
+  is_completed: boolean;
+}
+
 interface TaskItem {
   id: number;
   title: string;
@@ -17,6 +23,7 @@ interface TaskItem {
   priority: string;
   category?: string;
   due_date?: string;
+  subtasks: Subtask[];
 }
 
 const priorityColors: { [key: string]: { border: string, bg: string } } = {
@@ -24,7 +31,6 @@ const priorityColors: { [key: string]: { border: string, bg: string } } = {
   medium: { border: 'border-yellow-500', bg: 'bg-yellow-500' },
   low: { border: 'border-green-500', bg: 'bg-green-500' },
 };
-
 const categoryColors: { [key: string]: string } = {
   work: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200',
   personal: 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200',
@@ -32,7 +38,6 @@ const categoryColors: { [key: string]: string } = {
   health: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200',
   finance: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200',
 };
-
 export default function Task({
   task,
   onUpdate,
@@ -40,7 +45,7 @@ export default function Task({
   isFocused = false
 }: {
   task: TaskItem;
-  onUpdate: (id: number, task: TaskItem) => void;
+  onUpdate: (id: number, task: TaskItem) => Promise<void> | void;
   onDelete: (id: number) => void;
   isFocused?: boolean;
 }) {

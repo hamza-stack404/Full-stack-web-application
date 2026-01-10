@@ -5,12 +5,20 @@ import Task from './Task';
 import { KeyboardEvent } from 'react';
 import { motion } from 'framer-motion';
 
+interface Subtask {
+  id: number;
+  title: string;
+  is_completed: boolean;
+}
+
 interface TaskItem {
   id: number;
   title: string;
   is_completed: boolean;
   priority: string;
+  category?: string;
   due_date?: string;
+  subtasks: Subtask[];
 }
 
 export default function TaskList({
@@ -22,7 +30,7 @@ export default function TaskList({
   onKeyDown
 }: {
   tasks: TaskItem[];
-  onUpdate: (id: number, task: TaskItem) => void;
+  onUpdate: (id: number, task: TaskItem) => Promise<void> | void;
   onDelete: (id: number) => void;
   onReorder: (startIndex: number, endIndex: number) => void;
   focusedIndex: number | null;
@@ -58,20 +66,11 @@ export default function TaskList({
               {tasks.map((task, index) => (
                 <Draggable key={task.id} draggableId={String(task.id)} index={index}>
                   {(provided, snapshot) => (
-                    <motion.div
+                    <div
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
                       className={index === focusedIndex ? 'ring-2 ring-blue-500' : ''}
-                      layout
-                      initial={false}
-                      animate={{
-                        scale: snapshot.isDragging ? 1.02 : 1,
-                        boxShadow: snapshot.isDragging
-                          ? '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
-                          : '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
-                      }}
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
                     >
                       <Task
                         task={task}
@@ -79,7 +78,7 @@ export default function TaskList({
                         onDelete={onDelete}
                         isFocused={index === focusedIndex}
                       />
-                    </motion.div>
+                    </div>
                   )}
                 </Draggable>
               ))}

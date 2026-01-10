@@ -24,6 +24,12 @@ import { useKeyboardShortcuts } from '@/src/hooks/useKeyboardShortcuts';
 import { useKeyboardNavigation } from '@/src/hooks/useKeyboardNavigation';
 import KeyboardShortcutsModal from '@/src/components/KeyboardShortcutsModal';
 
+interface Subtask {
+  id: number;
+  title: string;
+  is_completed: boolean;
+}
+
 interface TaskItem {
   id: number;
   title: string;
@@ -31,7 +37,7 @@ interface TaskItem {
   priority: string;
   category?: string;
   due_date?: string;
-  subtasks: any[];
+  subtasks: Subtask[];
 }
 
 interface ApiError {
