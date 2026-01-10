@@ -211,62 +211,65 @@ export default function KanbanBoard({ tasks, onUpdate, onDelete, onAdd }: Kanban
                         return (
                           <Draggable key={task.id} draggableId={String(task.id)} index={index}>
                             {(provided, snapshot) => (
-                              <motion.div
+                              <div
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
                                 className="mb-3"
-                                layout
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{
-                                  opacity: 1,
-                                  scale: 1,
-                                  y: snapshot.isDragging ? -5 : 0
-                                }}
-                                exit={{ opacity: 0, scale: 0.8 }}
-                                whileHover={{ y: -2 }}
-                                transition={{ type: "spring", stiffness: 300, damping: 20 }}
                               >
-                                <Card className={`bg-white dark:bg-slate-800 shadow-sm border-l-4 ${
-                                  task.priority === 'high' ? 'border-red-500' :
-                                  task.priority === 'medium' ? 'border-yellow-500' :
-                                  'border-green-500'
-                                } ${task.is_completed ? 'opacity-70' : ''}`}>
-                                  <CardContent className="p-3">
-                                    <div className="flex justify-between items-start">
-                                      <h4 className={`text-sm font-medium ${task.is_completed ? 'line-through text-slate-500 dark:text-slate-500' : 'text-slate-800 dark:text-slate-200'}`}>
-                                        {task.title}
-                                      </h4>
-                                      <button className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
-                                        <MoreHorizontal className="h-4 w-4" />
-                                      </button>
-                                    </div>
+                                <motion.div
+                                  layout
+                                  initial={{ opacity: 0, scale: 0.8 }}
+                                  animate={{
+                                    opacity: 1,
+                                    scale: 1,
+                                    y: snapshot.isDragging ? -5 : 0
+                                  }}
+                                  exit={{ opacity: 0, scale: 0.8 }}
+                                  whileHover={{ y: -2 }}
+                                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                                >
+                                  <Card className={`bg-white dark:bg-slate-800 shadow-sm border-l-4 ${
+                                    task.priority === 'high' ? 'border-red-500' :
+                                    task.priority === 'medium' ? 'border-yellow-500' :
+                                    'border-green-500'
+                                  } ${task.is_completed ? 'opacity-70' : ''}`}>
+                                    <CardContent className="p-3">
+                                      <div className="flex justify-between items-start">
+                                        <h4 className={`text-sm font-medium ${task.is_completed ? 'line-through text-slate-500 dark:text-slate-500' : 'text-slate-800 dark:text-slate-200'}`}>
+                                          {task.title}
+                                        </h4>
+                                        <button className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                                          <MoreHorizontal className="h-4 w-4" />
+                                        </button>
+                                      </div>
 
-                                    <div className="flex flex-wrap gap-1 mt-2">
-                                      {task.priority && (
-                                        <div className="flex items-center gap-1">
-                                          <Flag className="h-3 w-3" />
-                                          <Badge variant="secondary" className={`text-xs ${priorityColors[task.priority]}`}>
-                                            {task.priority}
+                                      <div className="flex flex-wrap gap-1 mt-2">
+                                        {task.priority && (
+                                          <div className="flex items-center gap-1">
+                                            <Flag className="h-3 w-3" />
+                                            <Badge variant="secondary" className={`text-xs ${priorityColors[task.priority]}`}>
+                                              {task.priority}
+                                            </Badge>
+                                          </div>
+                                        )}
+                                        {task.category && (
+                                          <Badge variant="secondary" className={`text-xs ${categoryColors[task.category]}`}>
+                                            {task.category}
                                           </Badge>
+                                        )}
+                                      </div>
+
+                                      {task.due_date && (
+                                        <div className="mt-2 flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+                                          <Calendar className="h-3 w-3" />
+                                          Due: {new Date(task.due_date).toLocaleDateString()}
                                         </div>
                                       )}
-                                      {task.category && (
-                                        <Badge variant="secondary" className={`text-xs ${categoryColors[task.category]}`}>
-                                          {task.category}
-                                        </Badge>
-                                      )}
-                                    </div>
-
-                                    {task.due_date && (
-                                      <div className="mt-2 flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
-                                        <Calendar className="h-3 w-3" />
-                                        Due: {new Date(task.due_date).toLocaleDateString()}
-                                      </div>
-                                    )}
-                                  </CardContent>
-                                </Card>
-                              </motion.div>
+                                    </CardContent>
+                                  </Card>
+                                </motion.div>
+                              </div>
                             )}
                           </Draggable>
                         );
