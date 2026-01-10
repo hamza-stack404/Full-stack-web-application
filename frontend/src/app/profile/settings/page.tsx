@@ -7,6 +7,7 @@ import ThemeToggle from '@/src/components/ThemeToggle';
 import { LogOut, Menu } from 'lucide-react';
 import { Tooltip } from '@/src/components/ui/tooltip';
 import Breadcrumbs from '@/components/Breadcrumbs';
+import DashboardCustomizer from '@/src/components/DashboardCustomizer';
 
 export default function SettingsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -51,8 +52,9 @@ export default function SettingsPage() {
         <main className="container mx-auto p-4 sm:p-6 space-y-6 pb-16">
           <Breadcrumbs />
           <div className="card-hover">
-            <h2 className="text-xl font-semibold mb-4">User Settings</h2>
-            <p>Here you can change your user settings.</p>
+            <h2 className="text-xl font-semibold mb-4">Dashboard Customization</h2>
+            <p className="mb-4">Customize your dashboard layout, theme, and widgets to suit your preferences.</p>
+            <DashboardCustomizer />
           </div>
         </main>
       </div>

@@ -80,7 +80,11 @@ export default function Tasks() {
     }
 
     if (categoryFilter !== 'all') {
-      filtered = filtered.filter(task => task.category === categoryFilter);
+      if (categoryFilter === 'none') {
+        filtered = filtered.filter(task => !task.category);
+      } else {
+        filtered = filtered.filter(task => task.category === categoryFilter);
+      }
     }
 
     if (sortBy === 'due_date_asc') {
@@ -406,7 +410,7 @@ export default function Tasks() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
-                    <SelectItem value="">No Category</SelectItem>
+                    <SelectItem value="none">No Category</SelectItem>
                     <SelectItem value="work">Work</SelectItem>
                     <SelectItem value="personal">Personal</SelectItem>
                     <SelectItem value="shopping">Shopping</SelectItem>

@@ -8,6 +8,11 @@ from ..auth import get_current_user
 router = APIRouter()
 
 def get_db():
+    if engine is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database connection is not configured."
+        )
     with Session(engine) as session:
         yield session
 

@@ -9,13 +9,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { cn } '@/lib/utils';
 import { motion } from 'framer-motion';
 
 const AddTaskForm = forwardRef<any, { onAdd: (task: { title: string; is_completed: boolean; priority: string, category?: string, due_date?: string }) => Promise<void> }>(({ onAdd }, ref) => {
   const [title, setTitle] = useState('');
   const [priority, setPriority] = useState('medium');
-  const [category, setCategory] = useState('');
+  const [category, setCategory] = useState('none');
   const [date, setDate] = useState<Date | undefined>();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -31,9 +31,9 @@ const AddTaskForm = forwardRef<any, { onAdd: (task: { title: string; is_complete
     try {
       // Convert Date object to ISO string for API
       const dueDateStr = date ? date.toISOString() : undefined;
-      await onAdd({ title, is_completed: false, priority, category: category || undefined, due_date: dueDateStr });
+      await onAdd({ title, is_completed: false, priority, category: category === 'none' ? undefined : category, due_date: dueDateStr });
       setTitle('');
-      setCategory('');
+      setCategory('none');
       setDate(undefined);
       toast.success("Task added successfully!");
     } catch (error) {
@@ -66,7 +66,7 @@ const AddTaskForm = forwardRef<any, { onAdd: (task: { title: string; is_complete
           <SelectValue placeholder="Category" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">None</SelectItem>
+          <SelectItem value="none">None</SelectItem>
           <SelectItem value="work">Work</SelectItem>
           <SelectItem value="personal">Personal</SelectItem>
           <SelectItem value="shopping">Shopping</SelectItem>
