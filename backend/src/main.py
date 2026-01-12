@@ -84,14 +84,58 @@ def on_startup():
         if engine is None:
             logger.warning("Database engine is not initialized - skipping table creation")
             return
-        
+
         # Only create tables that don't exist
         # Don't drop existing tables - too destructive
         SQLModel.metadata.create_all(engine)
         logger.info("Database tables created/verified successfully")
+
+        # Run schema migrations for existing tables
+        migrate_task_table()
+
     except Exception as e:
         logger.error(f"Failed to create database tables: {str(e)}", exc_info=True)
         # Continue anyway - might already exist or DB connection issue
+
+def migrate_task_table():
+    """Add missing columns to task table if they don't exist"""
+    try:
+        if engine is None:
+            return
+
+        from sqlalchemy import text, inspect
+
+        with engine.connect() as conn:
+            inspector = inspect(engine)
+
+            # Check if task table exists
+            if 'task' not in inspector.get_table_names():
+                logger.info("Task table doesn't exist yet, skipping migration")
+                return
+
+            # Get existing columns
+            existing_columns = {col['name'] for col in inspector.get_columns('task')}
+            logger.info(f"Existing task table columns: {existing_columns}")
+
+            # Add category column if it doesn't exist
+            if 'category' not in existing_columns:
+                logger.info("Adding 'category' column to task table")
+                conn.execute(text("ALTER TABLE task ADD COLUMN category VARCHAR"))
+                conn.commit()
+                logger.info("Added 'category' column successfully")
+
+            # Add subtasks column if it doesn't exist
+            if 'subtasks' not in existing_columns:
+                logger.info("Adding 'subtasks' column to task table")
+                conn.execute(text("ALTER TABLE task ADD COLUMN subtasks JSON"))
+                conn.commit()
+                logger.info("Added 'subtasks' column successfully")
+
+            logger.info("Task table migration completed successfully")
+
+    except Exception as e:
+        logger.error(f"Failed to migrate task table: {str(e)}", exc_info=True)
+        # Continue anyway - app should still work
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
