@@ -117,6 +117,13 @@ def migrate_task_table():
             existing_columns = {col['name'] for col in inspector.get_columns('task')}
             logger.info(f"Existing task table columns: {existing_columns}")
 
+            # Add priority column if it doesn't exist
+            if 'priority' not in existing_columns:
+                logger.info("Adding 'priority' column to task table")
+                conn.execute(text("ALTER TABLE task ADD COLUMN priority VARCHAR DEFAULT 'medium'"))
+                conn.commit()
+                logger.info("Added 'priority' column successfully")
+
             # Add category column if it doesn't exist
             if 'category' not in existing_columns:
                 logger.info("Adding 'category' column to task table")
@@ -124,12 +131,33 @@ def migrate_task_table():
                 conn.commit()
                 logger.info("Added 'category' column successfully")
 
+            # Add due_date column if it doesn't exist
+            if 'due_date' not in existing_columns:
+                logger.info("Adding 'due_date' column to task table")
+                conn.execute(text("ALTER TABLE task ADD COLUMN due_date TIMESTAMP WITH TIME ZONE"))
+                conn.commit()
+                logger.info("Added 'due_date' column successfully")
+
             # Add subtasks column if it doesn't exist
             if 'subtasks' not in existing_columns:
                 logger.info("Adding 'subtasks' column to task table")
                 conn.execute(text("ALTER TABLE task ADD COLUMN subtasks JSON"))
                 conn.commit()
                 logger.info("Added 'subtasks' column successfully")
+
+            # Add created_at column if it doesn't exist
+            if 'created_at' not in existing_columns:
+                logger.info("Adding 'created_at' column to task table")
+                conn.execute(text("ALTER TABLE task ADD COLUMN created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()"))
+                conn.commit()
+                logger.info("Added 'created_at' column successfully")
+
+            # Add updated_at column if it doesn't exist
+            if 'updated_at' not in existing_columns:
+                logger.info("Adding 'updated_at' column to task table")
+                conn.execute(text("ALTER TABLE task ADD COLUMN updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()"))
+                conn.commit()
+                logger.info("Added 'updated_at' column successfully")
 
             logger.info("Task table migration completed successfully")
 
