@@ -21,12 +21,10 @@ origins = [
     "https://hamza-full-stack-web.vercel.app",
 ]
 
-# Allow all origins in production - adjust as needed
-if os.getenv("ENVIRONMENT") == "production":
-    origins.extend([
-        "https://*.vercel.app",
-        "*"
-    ])
+# Add production frontend URL from environment variable if available
+frontend_url = os.getenv("FRONTEND_URL")
+if frontend_url and frontend_url not in origins:
+    origins.append(frontend_url)
 
 app.add_middleware(
     CORSMiddleware,
@@ -34,6 +32,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # Middleware to log all requests

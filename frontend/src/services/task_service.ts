@@ -59,6 +59,9 @@ apiClient.interceptors.request.use(
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log('Request with token:', config.url, 'Token exists:', !!token);
+    } else {
+      console.warn('No token found for request:', config.url);
     }
     config.headers['Content-Type'] = 'application/json';
 
@@ -89,6 +92,18 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     console.error('API Error:', error.response || error.message || error);
+
+    // Handle 401 Unauthorized errors
+    if (error.response && error.response.status === 401) {
+      // Clear invalid token
+      localStorage.removeItem('token');
+
+      // Redirect to login page if not already there
+      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
+    }
+
     return Promise.reject(error);
   }
 );
