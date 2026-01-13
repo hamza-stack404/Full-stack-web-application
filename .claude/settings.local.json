@@ -7,7 +7,15 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push)",
-      "Bash(alembic revision:*)"
+      "Bash(alembic revision:*)",
+      "Bash(ls -d \"C:\\\\Users\\\\Noman Traders\\\\Desktop\\\\Todo web full Stack\\\\specs\"/*-ai-chatbot)",
+      "Bash(powershell.exe:*)",
+      "Skill(sp.implement)",
+      "Bash(alembic current)",
+      "Bash(alembic upgrade:*)",
+      "Bash(alembic history)",
+      "Bash(alembic stamp:*)",
+      "Bash(dir /B)"
     ]
   }
 }
