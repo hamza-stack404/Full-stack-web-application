@@ -82,3 +82,14 @@ test_*.pyo
 *.out.log
 server.log
 frontend.log
+
+# Temporary summary/quickstart files
+PHASE_III_*.md
+QUICKSTART_*.md
+
+# Claude Code temporary directories
+tmpclaude-*
+
+# Package installation errors and temp files
+=*
+nul
