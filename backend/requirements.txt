@@ -10,8 +10,8 @@ alembic
 Mako
 MarkupSafe
 email-validator
-# Phase III: AI Chatbot dependencies (T001) - Updated to use new Gemini SDK
-google-genai>=1.0.0
+# Phase III: AI Chatbot dependencies (T001)
+openai>=1.10.0
 
 # Testing dependencies (Phase III)
 pytest>=7.4.0
