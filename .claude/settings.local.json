@@ -30,7 +30,11 @@
       "Bash(git commit -m \"$\\(cat <<''EOF''\nWIP: Migrate Phase III from OpenAI to Gemini SDK\n\nAttempted migration of AI agent service from OpenAI to Google Gemini:\n- Update requirements.txt to use google-genai SDK\n- Refactor agent_service.py for Gemini API\n- Change backend port to 8001 in next.config.ts\n- Add bash permissions to settings\n\nThis commit preserves work-in-progress before Phase III re-implementation.\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git add -A)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nDelete Phase III AI Chatbot implementation for re-implementation\n\nRemoved all Phase III implementation files:\n- Backend: chat.py, agent_service.py, mcp_server.py, conversation.py, message.py\n- Frontend: ChatInterface.tsx, chat page, chat-api.ts\n- Removed chat router integration from main.py\n- Removed AI Assistant navigation from Sidebar and BottomNav\n- Cleaned up model imports\n\nSpecifications and database migration preserved for re-implementation.\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nComplete Phase III deletion cleanup\n\nFinal cleanup of Phase III implementation:\n- Remove settings.local.json changes\n- Ensure all Phase III code is removed\n- Clean state for re-implementation\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nComplete Phase III deletion cleanup\n\nFinal cleanup of Phase III implementation:\n- Remove settings.local.json changes\n- Ensure all Phase III code is removed\n- Clean state for re-implementation\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(npx tsc:*)",
+      "Bash(uvicorn:*)",
+      "Bash(timeout:*)",
+      "Bash(curl:*)"
     ]
   }
 }
