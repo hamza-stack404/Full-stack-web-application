@@ -1,16 +1,17 @@
-# Task T014: OpenAI Agent Service for Phase III AI Chatbot
-# Orchestrates AI agent with MCP tools for task management
+# Task T014: Gemini Agent Service for Phase III AI Chatbot
+# Orchestrates AI agent with MCP tools for task management using Google Gemini
 import os
 import json
 import logging
 from typing import List, Dict, Any, Optional
-from openai import OpenAI
+from google import genai
+from google.genai import types
 from .mcp_server import MCPTools
 
 logger = logging.getLogger(__name__)
 
-# Initialize OpenAI client
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Configure Gemini client
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 # System prompt for the AI agent
 SYSTEM_PROMPT = """You are a helpful task management assistant. You help users manage their todo tasks through natural conversation.
@@ -53,189 +54,217 @@ def run_agent(user_id: int, message: str, conversation_history: Optional[List[Di
         Assistant's response as a string
     """
     try:
-        # Build messages array with conversation history
-        messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+        # Define tool functions that will be called by Gemini
+        def add_task_impl(title: str, description: str = "", priority: str = "medium", category: str = "") -> dict:
+            """Implementation of add_task tool"""
+            return MCPTools.add_task(user_id=user_id, title=title, description=description or None,
+                                    priority=priority, category=category or None)
 
-        if conversation_history:
-            messages.extend(conversation_history)
+        def list_tasks_impl(status: str = "", limit: int = 100) -> dict:
+            """Implementation of list_tasks tool"""
+            return MCPTools.list_tasks(user_id=user_id, status=status or None, limit=limit)
 
-        messages.append({"role": "user", "content": message})
+        def complete_task_impl(task_id: int) -> dict:
+            """Implementation of complete_task tool"""
+            return MCPTools.complete_task(user_id=user_id, task_id=task_id)
 
-        # Define tools for OpenAI function calling
+        def delete_task_impl(task_id: int) -> dict:
+            """Implementation of delete_task tool"""
+            return MCPTools.delete_task(user_id=user_id, task_id=task_id)
+
+        def update_task_impl(task_id: int, title: str = "", priority: str = "", category: str = "") -> dict:
+            """Implementation of update_task tool"""
+            return MCPTools.update_task(user_id=user_id, task_id=task_id,
+                                       title=title or None, priority=priority or None,
+                                       category=category or None)
+
+        # Map function names to implementations
+        tool_functions = {
+            "add_task": add_task_impl,
+            "list_tasks": list_tasks_impl,
+            "complete_task": complete_task_impl,
+            "delete_task": delete_task_impl,
+            "update_task": update_task_impl
+        }
+
+        # Define tools for Gemini using the new API
         tools = [
-            {
-                "type": "function",
-                "function": {
-                    "name": "add_task",
-                    "description": "Create a new task for the user",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "title": {
-                                "type": "string",
-                                "description": "The task title"
+            types.Tool(
+                function_declarations=[
+                    types.FunctionDeclaration(
+                        name="add_task",
+                        description="Create a new task for the user",
+                        parameters={
+                            "type": "OBJECT",
+                            "properties": {
+                                "title": {
+                                    "type": "STRING",
+                                    "description": "The task title (required)"
+                                },
+                                "description": {
+                                    "type": "STRING",
+                                    "description": "Optional task description"
+                                },
+                                "priority": {
+                                    "type": "STRING",
+                                    "description": "Task priority - must be 'low', 'medium', or 'high'",
+                                    "enum": ["low", "medium", "high"]
+                                },
+                                "category": {
+                                    "type": "STRING",
+                                    "description": "Optional task category"
+                                }
                             },
-                            "description": {
-                                "type": "string",
-                                "description": "Optional task description"
-                            },
-                            "priority": {
-                                "type": "string",
-                                "enum": ["low", "medium", "high"],
-                                "description": "Task priority (default: medium)"
-                            },
-                            "category": {
-                                "type": "string",
-                                "description": "Optional task category"
+                            "required": ["title"]
+                        }
+                    ),
+                    types.FunctionDeclaration(
+                        name="list_tasks",
+                        description="List all tasks for the user, optionally filtered by status",
+                        parameters={
+                            "type": "OBJECT",
+                            "properties": {
+                                "status": {
+                                    "type": "STRING",
+                                    "description": "Optional filter - 'completed' or 'pending'. Leave empty to show all tasks.",
+                                    "enum": ["completed", "pending"]
+                                },
+                                "limit": {
+                                    "type": "INTEGER",
+                                    "description": "Maximum number of tasks to return (default: 100)"
+                                }
                             }
-                        },
-                        "required": ["title"]
-                    }
-                }
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "list_tasks",
-                    "description": "List all tasks for the user, optionally filtered by status",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "status": {
-                                "type": "string",
-                                "enum": ["completed", "pending"],
-                                "description": "Optional filter by task status"
+                        }
+                    ),
+                    types.FunctionDeclaration(
+                        name="complete_task",
+                        description="Mark a task as completed",
+                        parameters={
+                            "type": "OBJECT",
+                            "properties": {
+                                "task_id": {
+                                    "type": "INTEGER",
+                                    "description": "The ID of the task to complete"
+                                }
                             },
-                            "limit": {
-                                "type": "integer",
-                                "description": "Maximum number of tasks to return (default: 100)"
-                            }
-                        },
-                        "required": []
-                    }
-                }
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "complete_task",
-                    "description": "Mark a task as completed",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "task_id": {
-                                "type": "integer",
-                                "description": "The ID of the task to complete"
-                            }
-                        },
-                        "required": ["task_id"]
-                    }
-                }
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "delete_task",
-                    "description": "Delete a task",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "task_id": {
-                                "type": "integer",
-                                "description": "The ID of the task to delete"
-                            }
-                        },
-                        "required": ["task_id"]
-                    }
-                }
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "update_task",
-                    "description": "Update task details",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "task_id": {
-                                "type": "integer",
-                                "description": "The ID of the task to update"
+                            "required": ["task_id"]
+                        }
+                    ),
+                    types.FunctionDeclaration(
+                        name="delete_task",
+                        description="Delete a task",
+                        parameters={
+                            "type": "OBJECT",
+                            "properties": {
+                                "task_id": {
+                                    "type": "INTEGER",
+                                    "description": "The ID of the task to delete"
+                                }
                             },
-                            "title": {
-                                "type": "string",
-                                "description": "New task title"
+                            "required": ["task_id"]
+                        }
+                    ),
+                    types.FunctionDeclaration(
+                        name="update_task",
+                        description="Update task details",
+                        parameters={
+                            "type": "OBJECT",
+                            "properties": {
+                                "task_id": {
+                                    "type": "INTEGER",
+                                    "description": "The ID of the task to update (required)"
+                                },
+                                "title": {
+                                    "type": "STRING",
+                                    "description": "New task title"
+                                },
+                                "priority": {
+                                    "type": "STRING",
+                                    "description": "New task priority - must be 'low', 'medium', or 'high'",
+                                    "enum": ["low", "medium", "high"]
+                                },
+                                "category": {
+                                    "type": "STRING",
+                                    "description": "New task category"
+                                }
                             },
-                            "priority": {
-                                "type": "string",
-                                "enum": ["low", "medium", "high"],
-                                "description": "New task priority"
-                            },
-                            "category": {
-                                "type": "string",
-                                "description": "New task category"
-                            }
-                        },
-                        "required": ["task_id"]
-                    }
-                }
-            }
+                            "required": ["task_id"]
+                        }
+                    )
+                ]
+            )
         ]
 
-        # Call OpenAI API with function calling
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=messages,
-            tools=tools,
-            tool_choice="auto"
+        # Build conversation history
+        contents = []
+        if conversation_history:
+            for msg in conversation_history:
+                role = "user" if msg["role"] == "user" else "model"
+                contents.append(types.Content(role=role, parts=[types.Part(text=msg["content"])]))
+
+        # Add current user message
+        contents.append(types.Content(role="user", parts=[types.Part(text=message)]))
+
+        # Generate response with automatic function calling
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=contents,
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_PROMPT,
+                tools=tools,
+                automatic_function_calling=types.AutomaticFunctionCallingConfig(
+                    disable=False
+                )
+            )
         )
 
-        response_message = response.choices[0].message
-        tool_calls = response_message.tool_calls
+        # Process function calls if any
+        while response.candidates[0].content.parts:
+            part = response.candidates[0].content.parts[0]
 
-        # If the model wants to call tools
-        if tool_calls:
-            # Add assistant's response to messages
-            messages.append(response_message)
+            # Check if this is a function call
+            if hasattr(part, 'function_call') and part.function_call:
+                func_call = part.function_call
+                func_name = func_call.name
+                func_args = dict(func_call.args) if func_call.args else {}
 
-            # Execute each tool call
-            for tool_call in tool_calls:
-                function_name = tool_call.function.name
-                function_args = json.loads(tool_call.function.arguments)
+                # Execute the function
+                if func_name in tool_functions:
+                    result = tool_functions[func_name](**func_args)
 
-                logger.info(f"Agent calling tool: {function_name} with args: {function_args}")
+                    # Add function response to conversation
+                    contents.append(response.candidates[0].content)
+                    contents.append(types.Content(
+                        role="function",
+                        parts=[types.Part(
+                            function_response=types.FunctionResponse(
+                                name=func_name,
+                                response={"result": result}
+                            )
+                        )]
+                    ))
 
-                # Call the appropriate MCP tool
-                if function_name == "add_task":
-                    function_response = MCPTools.add_task(user_id=user_id, **function_args)
-                elif function_name == "list_tasks":
-                    function_response = MCPTools.list_tasks(user_id=user_id, **function_args)
-                elif function_name == "complete_task":
-                    function_response = MCPTools.complete_task(user_id=user_id, **function_args)
-                elif function_name == "delete_task":
-                    function_response = MCPTools.delete_task(user_id=user_id, **function_args)
-                elif function_name == "update_task":
-                    function_response = MCPTools.update_task(user_id=user_id, **function_args)
+                    # Generate next response
+                    response = client.models.generate_content(
+                        model="gemini-2.5-flash",
+                        contents=contents,
+                        config=types.GenerateContentConfig(
+                            system_instruction=SYSTEM_PROMPT,
+                            tools=tools
+                        )
+                    )
                 else:
-                    function_response = {"error": f"Unknown function: {function_name}"}
+                    logger.error(f"Unknown function called: {func_name}")
+                    break
+            else:
+                # No more function calls, extract text response
+                break
 
-                # Add tool response to messages
-                messages.append({
-                    "tool_call_id": tool_call.id,
-                    "role": "tool",
-                    "name": function_name,
-                    "content": str(function_response)
-                })
-
-            # Get final response from the model
-            second_response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=messages
-            )
-
-            return second_response.choices[0].message.content
-
-        # If no tool calls, return the direct response
-        return response_message.content
+        # Extract final text response
+        if response.text:
+            return response.text
+        else:
+            return "I processed your request successfully!"
 
     except Exception as e:
         logger.error(f"Error running agent: {str(e)}", exc_info=True)
