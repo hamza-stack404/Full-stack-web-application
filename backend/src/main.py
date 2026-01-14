@@ -66,15 +66,6 @@ try:
 except Exception as e:
     logger.error(f"Failed to import tasks router: {str(e)}", exc_info=True)
 
-# Phase III: AI Chatbot router (T016)
-try:
-    logger.info("Importing chat router...")
-    from .api import chat
-    logger.info("Chat router imported successfully")
-    app.include_router(chat.router, prefix="/api", tags=["chat"])
-    logger.info("Chat router registered at /api")
-except Exception as e:
-    logger.error(f"Failed to import chat router: {str(e)}", exc_info=True)
 
 try:
     from .database import engine

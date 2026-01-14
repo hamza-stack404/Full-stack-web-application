@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Home, LayoutDashboard, MessageSquare } from 'lucide-react';
+import { Home, LayoutDashboard } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
 export default function BottomNav() {
@@ -16,10 +16,6 @@ export default function BottomNav() {
       <Link href="/dashboard" className={`flex flex-col items-center gap-1 ${pathname === '/dashboard' ? 'text-primary' : 'text-slate-500'}`}>
         <LayoutDashboard className="h-6 w-6" />
         <span className="text-xs">Dashboard</span>
-      </Link>
-      <Link href="/chat" className={`flex flex-col items-center gap-1 ${pathname === '/chat' ? 'text-primary' : 'text-slate-500'}`}>
-        <MessageSquare className="h-6 w-6" />
-        <span className="text-xs">AI Chat</span>
       </Link>
     </div>
   );

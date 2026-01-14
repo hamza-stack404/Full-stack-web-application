@@ -26,7 +26,9 @@
       "Bash(npm run dev)",
       "Bash(timeout 3 tail -f \"C:\\\\Users\\\\NOMANT~1\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-Noman-Traders-Desktop-Todo-web-full-Stack\\\\tasks\\\\b994101.output\")",
       "Bash(exit 0)",
-      "Bash(git add .claude/settings.local.json backend/requirements.txt backend/src/services/agent_service.py frontend/next.config.ts)"
+      "Bash(git add .claude/settings.local.json backend/requirements.txt backend/src/services/agent_service.py frontend/next.config.ts)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nWIP: Migrate Phase III from OpenAI to Gemini SDK\n\nAttempted migration of AI agent service from OpenAI to Google Gemini:\n- Update requirements.txt to use google-genai SDK\n- Refactor agent_service.py for Gemini API\n- Change backend port to 8001 in next.config.ts\n- Add bash permissions to settings\n\nThis commit preserves work-in-progress before Phase III re-implementation.\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git add -A)"
     ]
   }
 }
