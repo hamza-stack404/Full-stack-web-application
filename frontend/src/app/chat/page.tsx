@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import ChatInterface from '@/components/ChatInterface';
+import ChatInterface from '@/src/components/ChatInterface';
 import { Loader2 } from 'lucide-react';
 
 export default function ChatPage() {
