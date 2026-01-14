@@ -202,7 +202,7 @@ def run_agent(user_id: int, message: str, conversation_history: Optional[List[Di
 
         # Generate response with function calling
         response = client.models.generate_content(
-            model="gemini-2.0-flash-exp",
+            model="gemini-1.5-flash",
             contents=contents,
             config=types.GenerateContentConfig(
                 system_instruction=SYSTEM_PROMPT,
@@ -248,7 +248,7 @@ def run_agent(user_id: int, message: str, conversation_history: Optional[List[Di
 
                         # Generate next response
                         response = client.models.generate_content(
-                            model="gemini-2.0-flash-exp",
+                            model="gemini-1.5-flash",
                             contents=contents,
                             config=types.GenerateContentConfig(
                                 system_instruction=SYSTEM_PROMPT,

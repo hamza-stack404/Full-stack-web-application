@@ -281,11 +281,14 @@ def delete_conversation(
                 detail="You don't have access to this conversation"
             )
 
-        # Delete all messages first
+        # Delete all messages first (to avoid foreign key constraint violation)
         messages_query = select(Message).where(Message.conversation_id == conversation_id)
         messages = db.exec(messages_query).all()
         for message in messages:
             db.delete(message)
+
+        # Flush to ensure messages are deleted before conversation
+        db.flush()
 
         # Delete conversation
         db.delete(conversation)
@@ -298,6 +301,7 @@ def delete_conversation(
     except HTTPException:
         raise
     except Exception as e:
+        db.rollback()
         logger.error(f"Error deleting conversation: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

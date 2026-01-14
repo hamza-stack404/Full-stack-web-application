@@ -28,6 +28,7 @@ export default function ChatInterface({ token }: ChatInterfaceProps) {
   const [currentConversationId, setCurrentConversationId] = useState<number | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
+  const [deletingConversationId, setDeletingConversationId] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom when messages change
@@ -83,7 +84,13 @@ export default function ChatInterface({ token }: ChatInterfaceProps) {
   };
 
   const handleDeleteConversation = async (conversationId: number) => {
+    // Prevent duplicate delete requests
+    if (deletingConversationId === conversationId) {
+      return;
+    }
+
     try {
+      setDeletingConversationId(conversationId);
       await deleteConversation(conversationId, token);
       setConversations(conversations.filter(c => c.id !== conversationId));
 
@@ -93,6 +100,8 @@ export default function ChatInterface({ token }: ChatInterfaceProps) {
       }
     } catch (error) {
       console.error('Failed to delete conversation:', error);
+    } finally {
+      setDeletingConversationId(null);
     }
   };
 
