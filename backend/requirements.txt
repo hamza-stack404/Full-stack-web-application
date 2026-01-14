@@ -11,7 +11,7 @@ Mako
 MarkupSafe
 email-validator
 # Phase III: AI Chatbot dependencies (T001)
-openai>=1.10.0
+google-genai>=1.0.0
 
 # Testing dependencies (Phase III)
 pytest>=7.4.0
