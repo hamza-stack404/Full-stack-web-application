@@ -10,8 +10,18 @@ from .mcp_server import MCPTools
 
 logger = logging.getLogger(__name__)
 
-# Configure Gemini client
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+# Validate and configure Gemini client
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    logger.error("GEMINI_API_KEY environment variable is not set")
+    client = None
+else:
+    try:
+        client = genai.Client(api_key=GEMINI_API_KEY)
+        logger.info("Gemini client initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize Gemini client: {type(e).__name__}")
+        client = None
 
 # System prompt for the AI agent
 SYSTEM_PROMPT = """You are a helpful task management assistant. You help users manage their todo tasks through natural conversation.
@@ -48,6 +58,11 @@ def run_agent(user_id: int, message: str, conversation_history: Optional[List[Di
     Returns:
         Assistant's response as a string
     """
+    # Check if Gemini client is initialized
+    if client is None:
+        logger.error("Gemini client not initialized - API key may be missing or invalid")
+        return "I'm sorry, the AI service is not properly configured. Please contact the administrator."
+
     try:
         # Define tool functions that will be called by Gemini
         def add_task_impl(title: str, description: str = "", priority: str = "medium", category: str = "") -> dict:
