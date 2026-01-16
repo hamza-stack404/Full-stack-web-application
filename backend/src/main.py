@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 import logging
 import os
 
@@ -9,7 +10,32 @@ import os
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Todo Backend", version="1.0.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan event handler for startup and shutdown"""
+    # Startup
+    try:
+        from .database import engine
+        from sqlmodel import SQLModel
+
+        if engine is None:
+            logger.warning("Database engine is not initialized - skipping table creation")
+        else:
+            # Only create tables that don't exist
+            SQLModel.metadata.create_all(engine)
+            logger.info("Database tables created/verified successfully")
+
+            # Run schema migrations for existing tables
+            migrate_task_table()
+    except Exception as e:
+        logger.error(f"Failed to create database tables: {str(e)}", exc_info=True)
+
+    yield
+
+    # Shutdown (if needed in future)
+    logger.info("Application shutting down")
+
+app = FastAPI(title="Todo Backend", version="1.0.0", lifespan=lifespan)
 
 logger.info("Starting app initialization...")
 
@@ -76,37 +102,6 @@ try:
 except Exception as e:
     logger.error(f"Failed to import chat router: {str(e)}", exc_info=True)
 
-
-try:
-    from .database import engine
-except Exception as e:
-    logger.error(f"Failed to import database engine: {str(e)}", exc_info=True)
-    engine = None
-
-try:
-    from sqlmodel import SQLModel
-except Exception as e:
-    logger.error(f"Failed to import SQLModel: {str(e)}", exc_info=True)
-
-@app.on_event("startup")
-def on_startup():
-    """Initialize database tables on startup"""
-    try:
-        if engine is None:
-            logger.warning("Database engine is not initialized - skipping table creation")
-            return
-
-        # Only create tables that don't exist
-        # Don't drop existing tables - too destructive
-        SQLModel.metadata.create_all(engine)
-        logger.info("Database tables created/verified successfully")
-
-        # Run schema migrations for existing tables
-        migrate_task_table()
-
-    except Exception as e:
-        logger.error(f"Failed to create database tables: {str(e)}", exc_info=True)
-        # Continue anyway - might already exist or DB connection issue
 
 def migrate_task_table():
     """Add missing columns to task table if they don't exist"""

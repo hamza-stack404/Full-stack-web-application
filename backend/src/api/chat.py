@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from pydantic import BaseModel
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, UTC
 import logging
 
 from ..auth import get_current_user, get_db
@@ -113,7 +113,7 @@ def send_chat_message(
         db.add(assistant_message)
 
         # Update conversation timestamp
-        conversation.updated_at = datetime.utcnow()
+        conversation.updated_at = datetime.now(UTC)
         db.add(conversation)
 
         db.commit()
