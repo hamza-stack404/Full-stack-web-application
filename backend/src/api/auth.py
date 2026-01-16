@@ -3,19 +3,13 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import Session
 from .. import schemas, models
 from ..services import user_service
-from ..database import engine
+from ..database import get_db
 from ..auth import create_access_token, verify_password
 import logging
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
-
-def get_db():
-    if engine is None:
-        raise HTTPException(status_code=503, detail="Database not available")
-    with Session(engine) as session:
-        yield session
 
 @router.post("/signup", response_model=schemas.User)
 def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):

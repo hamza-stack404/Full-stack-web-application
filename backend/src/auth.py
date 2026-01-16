@@ -6,26 +6,22 @@ from datetime import datetime, timedelta, UTC
 import os
 from dotenv import load_dotenv
 from sqlmodel import Session
-from .database import engine
+from .database import engine, get_db
 from . import services
 
 load_dotenv()
 
 SECRET_KEY = os.getenv("BETTER_AUTH_SECRET")
+if not SECRET_KEY:
+    raise ValueError(
+        "BETTER_AUTH_SECRET environment variable must be set. "
+        "Please add it to your .env file or environment variables."
+    )
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
-
-def get_db():
-    if engine is None:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Database connection is not configured."
-        )
-    with Session(engine) as session:
-        yield session
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)

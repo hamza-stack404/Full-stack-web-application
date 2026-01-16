@@ -1,4 +1,5 @@
-from sqlmodel import create_engine
+from sqlmodel import create_engine, Session
+from fastapi import HTTPException, status
 import os
 from dotenv import load_dotenv
 import logging
@@ -26,3 +27,17 @@ else:
         logger.error(f"Failed to create database engine: {str(e)}")
         engine = None
         # Don't raise - let app continue
+
+
+def get_db():
+    """
+    Centralized database session dependency.
+    Yields a database session and ensures proper cleanup.
+    """
+    if engine is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database connection is not configured."
+        )
+    with Session(engine) as session:
+        yield session

@@ -2,19 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session
 from typing import List
 from .. import schemas, services, models
-from ..database import engine
+from ..database import get_db
 from ..auth import get_current_user
 
 router = APIRouter()
-
-def get_db():
-    if engine is None:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Database connection is not configured."
-        )
-    with Session(engine) as session:
-        yield session
 
 @router.post("/tasks", response_model=schemas.Task)
 def create_task(

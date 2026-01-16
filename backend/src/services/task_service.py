@@ -6,7 +6,7 @@ def get_task(db: Session, task_id: int):
     return db.exec(statement).first()
 
 def create_task(db: Session, task: schemas.TaskCreate, owner_id: int):
-    db_task = models.Task(**task.dict(), owner_id=owner_id)
+    db_task = models.Task(**task.model_dump(), owner_id=owner_id)
     db.add(db_task)
     db.commit()
     db.refresh(db_task)
@@ -17,7 +17,7 @@ def get_tasks(db: Session, owner_id: int, skip: int = 0, limit: int = 100):
     return db.exec(statement).all()
 
 def update_task(db: Session, db_task: models.Task, task_in: schemas.TaskUpdate):
-    task_data = task_in.dict(exclude_unset=True)
+    task_data = task_in.model_dump(exclude_unset=True)
     for key, value in task_data.items():
         setattr(db_task, key, value)
     db.add(db_task)

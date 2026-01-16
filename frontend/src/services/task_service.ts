@@ -22,7 +22,10 @@ const getBaseURL = () => {
 
 const BASE_URL = getBaseURL();
 
-console.log('Task Service Base URL:', BASE_URL);
+// Only log in development
+if (isDevelopment) {
+  console.log('Task Service Base URL:', BASE_URL);
+}
 
 export interface Subtask {
   id: number;
@@ -59,8 +62,10 @@ apiClient.interceptors.request.use(
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log('Request with token:', config.url, 'Token exists:', !!token);
-    } else {
+      if (isDevelopment) {
+        console.log('Request with token:', config.url, 'Token exists:', !!token);
+      }
+    } else if (isDevelopment) {
       console.warn('No token found for request:', config.url);
     }
     config.headers['Content-Type'] = 'application/json';
@@ -91,7 +96,9 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('API Error:', error.response || error.message || error);
+    if (isDevelopment) {
+      console.error('API Error:', error.response || error.message || error);
+    }
 
     // Handle 401 Unauthorized errors
     if (error.response && error.response.status === 401) {

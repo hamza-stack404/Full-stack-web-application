@@ -146,28 +146,35 @@ def list_conversations(
     List all conversations for the current user.
     """
     try:
-        query = select(Conversation).where(
+        from sqlalchemy import func
+
+        # Optimized query: get conversations with message counts in a single query
+        query = select(
+            Conversation.id,
+            Conversation.created_at,
+            Conversation.updated_at,
+            func.count(Message.id).label('message_count')
+        ).outerjoin(
+            Message, Message.conversation_id == Conversation.id
+        ).where(
             Conversation.user_id == current_user.id
+        ).group_by(
+            Conversation.id,
+            Conversation.created_at,
+            Conversation.updated_at
         ).order_by(Conversation.updated_at.desc())
 
-        conversations = db.exec(query).all()
+        results = db.exec(query).all()
 
-        # Get message count for each conversation
-        result = []
-        for conv in conversations:
-            message_count_query = select(Message).where(
-                Message.conversation_id == conv.id
+        return [
+            ConversationResponse(
+                id=row.id,
+                created_at=row.created_at,
+                updated_at=row.updated_at,
+                message_count=row.message_count
             )
-            message_count = len(db.exec(message_count_query).all())
-
-            result.append(ConversationResponse(
-                id=conv.id,
-                created_at=conv.created_at,
-                updated_at=conv.updated_at,
-                message_count=message_count
-            ))
-
-        return result
+            for row in results
+        ]
 
     except Exception as e:
         logger.error(f"Error listing conversations: {str(e)}", exc_info=True)
