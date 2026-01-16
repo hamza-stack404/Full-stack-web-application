@@ -43,12 +43,18 @@ export default function Task({
   task,
   onUpdate,
   onDelete,
-  isFocused = false
+  isFocused = false,
+  selectionMode = false,
+  isSelected = false,
+  onToggleSelection
 }: {
   task: TaskItem;
   onUpdate: (id: number, task: TaskItem) => Promise<void> | void;
   onDelete: (id: number) => void;
   isFocused?: boolean;
+  selectionMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelection?: (taskId: number) => void;
 }) {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
@@ -107,12 +113,21 @@ export default function Task({
         className={`card-hover flex flex-col sm:flex-row items-start sm:items-center justify-between group p-4 gap-4 bg-white dark:bg-slate-900 rounded-lg shadow-sm border-l-4 ${priorityColors[task.priority]?.border} ${isFocused ? 'ring-2 ring-blue-500' : ''}`}
       >
         <div className="flex items-start sm:items-center gap-4 flex-1">
+          {selectionMode && onToggleSelection && (
+            <Checkbox
+              checked={isSelected}
+              onCheckedChange={() => onToggleSelection(task.id)}
+              onClick={(e) => e.stopPropagation()}
+              className="w-5 h-5 mt-1 sm:mt-0"
+            />
+          )}
           <FileText className="h-6 w-6 text-slate-400" />
           <div className="flex items-center gap-3 flex-1">
             <Checkbox
               id={`task-${task.id}`}
               checked={task.is_completed}
               onCheckedChange={() => handleUpdate({ ...task, is_completed: !task.is_completed })}
+              onClick={(e) => e.stopPropagation()}
               className="w-5 h-5 mt-1 sm:mt-0"
             />
             <div className="flex flex-col flex-1">
