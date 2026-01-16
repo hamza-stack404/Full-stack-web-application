@@ -36,6 +36,7 @@ interface TaskItem {
   is_completed: boolean;
   priority: string;
   category?: string;
+  tags?: string[];
   due_date?: string;
   subtasks: Subtask[];
 }

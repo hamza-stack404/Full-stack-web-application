@@ -21,7 +21,8 @@ class MCPTools:
         title: str,
         description: Optional[str] = None,
         priority: str = "medium",
-        category: Optional[str] = None
+        category: Optional[str] = None,
+        tags: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         """
         Create a new task for the user.
@@ -32,6 +33,7 @@ class MCPTools:
             description: Optional task description
             priority: Task priority - "low", "medium", or "high" (default: "medium")
             category: Optional task category
+            tags: Optional list of tags for organizing tasks
 
         Returns:
             Dict with task_id, status, and title
@@ -43,6 +45,7 @@ class MCPTools:
                     owner_id=user_id,
                     priority=priority,
                     category=category,
+                    tags=tags,
                     is_completed=False
                 )
                 session.add(task)
@@ -55,7 +58,8 @@ class MCPTools:
                     "status": "success",
                     "title": task.title,
                     "priority": task.priority,
-                    "category": task.category
+                    "category": task.category,
+                    "tags": task.tags
                 }
         except Exception as e:
             logger.error(f"Error creating task: {str(e)}", exc_info=True)
@@ -103,6 +107,7 @@ class MCPTools:
                         "is_completed": task.is_completed,
                         "priority": task.priority,
                         "category": task.category,
+                        "tags": task.tags,
                         "created_at": task.created_at.isoformat() if task.created_at else None
                     }
                     for task in tasks
@@ -222,7 +227,8 @@ class MCPTools:
         task_id: int,
         title: Optional[str] = None,
         priority: Optional[str] = None,
-        category: Optional[str] = None
+        category: Optional[str] = None,
+        tags: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         """
         Update task details.
@@ -233,6 +239,7 @@ class MCPTools:
             title: New task title (optional)
             priority: New task priority (optional)
             category: New task category (optional)
+            tags: New list of tags (optional)
 
         Returns:
             Dict with task_id, status, and updated fields
@@ -261,6 +268,8 @@ class MCPTools:
                     task.priority = priority
                 if category is not None:
                     task.category = category
+                if tags is not None:
+                    task.tags = tags
 
                 session.add(task)
                 session.commit()
@@ -272,7 +281,8 @@ class MCPTools:
                     "status": "success",
                     "title": task.title,
                     "priority": task.priority,
-                    "category": task.category
+                    "category": task.category,
+                    "tags": task.tags
                 }
         except Exception as e:
             logger.error(f"Error updating task: {str(e)}", exc_info=True)

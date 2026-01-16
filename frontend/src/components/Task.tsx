@@ -22,6 +22,7 @@ interface TaskItem {
   is_completed: boolean;
   priority: string;
   category?: string;
+  tags?: string[];
   due_date?: string;
   subtasks: Subtask[];
 }
@@ -125,7 +126,7 @@ export default function Task({
               >
                 {task.title}
               </label>
-              <div className="flex sm:hidden items-center gap-4 mt-2">
+              <div className="flex sm:hidden items-center gap-4 mt-2 flex-wrap">
                 {task.due_date && (
                   <div className="flex items-center gap-1 text-xs text-slate-500">
                     <CalendarIcon className="h-4 w-4" />
@@ -137,12 +138,24 @@ export default function Task({
                     {task.category}
                   </span>
                 )}
+                {task.tags && task.tags.length > 0 && (
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {task.tags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="text-xs px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-4 self-end sm:self-center">
-          <div className="hidden sm:flex items-center gap-4">
+          <div className="hidden sm:flex items-center gap-4 flex-wrap">
             {task.due_date && (
               <div className="flex items-center gap-1 text-xs text-slate-500">
                 <CalendarIcon className="h-4 w-4" />
@@ -153,6 +166,18 @@ export default function Task({
               <span className={`text-xs px-2 py-1 rounded-full ${categoryColors[task.category] || 'bg-gray-100 dark:bg-gray-700'}`}>
                 {task.category}
               </span>
+            )}
+            {task.tags && task.tags.length > 0 && (
+              <div className="flex items-center gap-1 flex-wrap">
+                {task.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="text-xs px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
           <motion.button

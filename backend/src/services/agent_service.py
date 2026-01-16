@@ -27,21 +27,23 @@ else:
 SYSTEM_PROMPT = """You are a helpful task management assistant. You help users manage their todo tasks through natural conversation.
 
 You have access to the following tools:
-- add_task: Create a new task with title, optional description, priority (low/medium/high), and category
+- add_task: Create a new task with title, optional description, priority (low/medium/high), category, and tags
 - list_tasks: List all tasks, optionally filtered by status (completed/pending)
 - complete_task: Mark a task as completed by its ID
 - delete_task: Delete a task by its ID
-- update_task: Update task details (title, priority, category) by its ID
+- update_task: Update task details (title, priority, category, tags) by its ID
 
 Guidelines:
 - Be conversational and friendly in your responses
-- When users create tasks, confirm what was created
-- When listing tasks, format them in a clear, readable way
+- When users create tasks, confirm what was created including any tags
+- When listing tasks, format them in a clear, readable way and include tags if present
 - If a user references a task by name instead of ID, list their tasks first to find the ID
 - Always validate that operations succeeded before confirming to the user
 - If an operation fails, explain the error in user-friendly language
 - Ask for clarification if the user's request is ambiguous
 - Keep responses concise but helpful
+- When users mention tags (like #urgent, #work), extract them and add to the task
+- Tags help organize tasks - suggest using them when appropriate
 
 Remember: You can only access tasks for the current user. All operations are automatically scoped to their account."""
 
@@ -65,10 +67,10 @@ def run_agent(user_id: int, message: str, conversation_history: Optional[List[Di
 
     try:
         # Define tool functions that will be called by Gemini
-        def add_task_impl(title: str, description: str = "", priority: str = "medium", category: str = "") -> dict:
+        def add_task_impl(title: str, description: str = "", priority: str = "medium", category: str = "", tags: list = None) -> dict:
             """Implementation of add_task tool"""
             return MCPTools.add_task(user_id=user_id, title=title, description=description or None,
-                                    priority=priority, category=category or None)
+                                    priority=priority, category=category or None, tags=tags)
 
         def list_tasks_impl(status: str = "", limit: int = 100) -> dict:
             """Implementation of list_tasks tool"""
@@ -82,11 +84,11 @@ def run_agent(user_id: int, message: str, conversation_history: Optional[List[Di
             """Implementation of delete_task tool"""
             return MCPTools.delete_task(user_id=user_id, task_id=task_id)
 
-        def update_task_impl(task_id: int, title: str = "", priority: str = "", category: str = "") -> dict:
+        def update_task_impl(task_id: int, title: str = "", priority: str = "", category: str = "", tags: list = None) -> dict:
             """Implementation of update_task tool"""
             return MCPTools.update_task(user_id=user_id, task_id=task_id,
                                        title=title or None, priority=priority or None,
-                                       category=category or None)
+                                       category=category or None, tags=tags)
 
         # Map function names to implementations
         tool_functions = {
@@ -123,6 +125,13 @@ def run_agent(user_id: int, message: str, conversation_history: Optional[List[Di
                                 "category": {
                                     "type": "STRING",
                                     "description": "Optional task category"
+                                },
+                                "tags": {
+                                    "type": "ARRAY",
+                                    "description": "Optional list of tags for organizing tasks (e.g., ['urgent', 'work', 'personal'])",
+                                    "items": {
+                                        "type": "STRING"
+                                    }
                                 }
                             },
                             "required": ["title"]
@@ -196,6 +205,13 @@ def run_agent(user_id: int, message: str, conversation_history: Optional[List[Di
                                 "category": {
                                     "type": "STRING",
                                     "description": "New task category"
+                                },
+                                "tags": {
+                                    "type": "ARRAY",
+                                    "description": "New list of tags for the task",
+                                    "items": {
+                                        "type": "STRING"
+                                    }
                                 }
                             },
                             "required": ["task_id"]

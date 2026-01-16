@@ -9,6 +9,7 @@ class Task(SQLModel, table=True):
     is_completed: bool = False
     priority: str = "medium"
     category: Optional[str] = Field(default=None)
+    tags: Optional[list] = Field(default=None, sa_column=Column(JSON))
     due_date: Optional[datetime] = Field(default=None)
     subtasks: Optional[list] = Field(default=None, sa_column=Column(JSON))
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC), sa_column=Column(DateTime(timezone=True), server_default=func.now()))

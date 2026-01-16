@@ -24,6 +24,7 @@ class TaskBase(BaseModel):
     is_completed: bool = False
     priority: str = Field(default="medium", description="Task priority: low, medium, or high")
     category: Optional[str] = Field(default=None, max_length=100)
+    tags: Optional[List[str]] = Field(default=None, description="List of tags for organizing tasks")
     due_date: Optional[datetime] = None
     subtasks: Optional[List[Subtask]] = None
 
@@ -43,6 +44,31 @@ class TaskBase(BaseModel):
         if not v or not v.strip():
             raise ValueError('Title cannot be empty or only whitespace')
         return v.strip()
+
+    @field_validator('tags')
+    @classmethod
+    def validate_tags(cls, v: Optional[List[str]]) -> Optional[List[str]]:
+        """Validate tags: remove duplicates, trim whitespace, limit length"""
+        if v is None:
+            return None
+        # Remove empty strings and trim whitespace
+        cleaned_tags = [tag.strip() for tag in v if tag and tag.strip()]
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_tags = []
+        for tag in cleaned_tags:
+            tag_lower = tag.lower()
+            if tag_lower not in seen:
+                seen.add(tag_lower)
+                unique_tags.append(tag)
+        # Limit to 10 tags
+        if len(unique_tags) > 10:
+            raise ValueError('Maximum 10 tags allowed per task')
+        # Limit tag length to 30 characters
+        for tag in unique_tags:
+            if len(tag) > 30:
+                raise ValueError('Each tag must be 30 characters or less')
+        return unique_tags if unique_tags else None
 
 class TaskCreate(TaskBase):
     pass

@@ -39,6 +39,7 @@ export interface TaskData {
   priority?: string;
   due_date?: string;
   category?: string;
+  tags?: string[];
   subtasks?: Subtask[];
 }
 
@@ -47,6 +48,7 @@ export interface Task extends TaskData {
   priority: string;
   due_date?: string;
   category?: string;
+  tags?: string[];
   subtasks?: Subtask[];
   updated_at?: string;
 }
