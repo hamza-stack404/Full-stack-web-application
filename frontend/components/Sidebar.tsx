@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Home, ListTodo, User, Settings, ChevronDown, ChevronRight, LayoutDashboard } from 'lucide-react';
+import { Menu, X, Home, ListTodo, User, Settings, ChevronDown, ChevronRight, LayoutDashboard, MessageSquare } from 'lucide-react';
 import { Button } from './ui/button';
 
 interface NavItem {
@@ -35,6 +35,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       title: 'Dashboard',
       href: '/dashboard',
       icon: <LayoutDashboard className="h-4 w-4" />,
+    },
+    {
+      title: 'AI Assistant',
+      href: '/chat',
+      icon: <MessageSquare className="h-4 w-4" />,
     },
     {
       title: 'Tasks',

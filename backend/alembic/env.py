@@ -1,8 +1,7 @@
 import os
 import sys
-import os
-import sys
 from logging.config import fileConfig
+from dotenv import load_dotenv
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
@@ -11,12 +10,18 @@ from alembic import context
 from sqlmodel import SQLModel, create_engine
 from alembic.config import Config
 
+# Load environment variables from .env file
+load_dotenv()
+
 # Add the current directory (backend) to sys.path
 sys.path.append(os.getcwd())
 
 # Import your models here to ensure they are registered with SQLModel.metadata
 from src.models.user import User
 from src.models.task import Task
+# Phase III: AI Chatbot models (T008)
+from src.models.conversation import Conversation
+from src.models.message import Message
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -68,8 +73,12 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    alembic_cfg = Config("alembic.ini")
-    url = alembic_cfg.get_main_option("sqlalchemy.url")
+    # Use DATABASE_URL from environment, fallback to alembic.ini if not set
+    url = os.getenv("DATABASE_URL")
+    if not url:
+        alembic_cfg = Config("alembic.ini")
+        url = alembic_cfg.get_main_option("sqlalchemy.url")
+
     connectable = create_engine(url)
 
     with connectable.connect() as connection:
