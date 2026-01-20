@@ -16,8 +16,10 @@
 
 Example:
 ```
-GEMINI_API_KEY=AIzaSyB1mwUX2pXv83teK8GP_6U_Lpx2K3HScvc
+GEMINI_API_KEY=your-actual-api-key-here
 ```
+
+**⚠️ IMPORTANT: Replace `your-actual-api-key-here` with your real API key. Never commit actual API keys to git!**
 
 ### Step 3: Restart the Backend
 ```bash
