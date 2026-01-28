@@ -10,6 +10,7 @@ import logging
 from ..auth import get_current_user, get_db
 from ..models import User, Conversation, Message
 from ..services.agent_service import run_agent
+from ..sanitization import sanitize_chat_message
 
 logger = logging.getLogger(__name__)
 
@@ -74,11 +75,20 @@ def send_chat_message(
             db.refresh(conversation)
             logger.info(f"Created new conversation {conversation.id} for user {current_user.id}")
 
+        # Sanitize user message to prevent XSS
+        sanitized_message = sanitize_chat_message(request.message)
+
+        if not sanitized_message or len(sanitized_message.strip()) == 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Message cannot be empty"
+            )
+
         # Save user message
         user_message = Message(
             conversation_id=conversation.id,
             role="user",
-            content=request.message
+            content=sanitized_message
         )
         db.add(user_message)
         db.commit()
@@ -96,19 +106,22 @@ def send_chat_message(
             for msg in history_messages[:-1]  # Exclude the message we just added
         ]
 
-        # Get AI response
+        # Get AI response (use original unsanitized message for better AI understanding)
         logger.info(f"Running agent for user {current_user.id} with message: {request.message[:50]}...")
         ai_response = run_agent(
             user_id=current_user.id,
-            message=request.message,
+            message=request.message,  # Use original message for AI processing
             conversation_history=conversation_history
         )
+
+        # Sanitize AI response before storing
+        sanitized_ai_response = sanitize_chat_message(ai_response)
 
         # Save assistant message
         assistant_message = Message(
             conversation_id=conversation.id,
             role="assistant",
-            content=ai_response
+            content=sanitized_ai_response
         )
         db.add(assistant_message)
 
@@ -122,7 +135,7 @@ def send_chat_message(
         logger.info(f"Chat interaction completed for conversation {conversation.id}")
 
         return ChatMessageResponse(
-            response=ai_response,
+            response=sanitized_ai_response,
             conversation_id=conversation.id,
             message_id=assistant_message.id
         )

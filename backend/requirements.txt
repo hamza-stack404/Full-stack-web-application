@@ -10,6 +10,7 @@ alembic
 Mako
 MarkupSafe
 email-validator
+bleach>=6.0.0
 # Phase III: AI Chatbot dependencies (T001)
 google-genai>=1.0.0
 

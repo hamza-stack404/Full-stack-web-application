@@ -1,6 +1,23 @@
 from pydantic import BaseModel, Field, EmailStr, ConfigDict, field_validator
-from typing import Optional, List
+from typing import Optional, List, Generic, TypeVar
 from datetime import datetime
+
+# Generic type for pagination
+T = TypeVar('T')
+
+class PaginationMetadata(BaseModel):
+    """Pagination metadata for list responses"""
+    total: int = Field(..., description="Total number of items")
+    page: int = Field(..., description="Current page number (1-indexed)")
+    page_size: int = Field(..., description="Number of items per page")
+    total_pages: int = Field(..., description="Total number of pages")
+    has_next: bool = Field(..., description="Whether there is a next page")
+    has_prev: bool = Field(..., description="Whether there is a previous page")
+
+class PaginatedResponse(BaseModel, Generic[T]):
+    """Generic paginated response wrapper"""
+    items: List[T] = Field(..., description="List of items for current page")
+    pagination: PaginationMetadata = Field(..., description="Pagination metadata")
 
 class UserBase(BaseModel):
     username: str = Field(..., min_length=1, max_length=255)
@@ -27,6 +44,9 @@ class TaskBase(BaseModel):
     tags: Optional[List[str]] = Field(default=None, description="List of tags for organizing tasks")
     due_date: Optional[datetime] = None
     subtasks: Optional[List[Subtask]] = None
+    is_recurring: bool = Field(default=False, description="Whether this task repeats")
+    recurrence_pattern: Optional[str] = Field(default=None, description="Recurrence pattern: daily, weekly, or monthly")
+    recurrence_interval: Optional[int] = Field(default=1, ge=1, le=365, description="Repeat every N days/weeks/months")
 
     @field_validator('priority')
     @classmethod
@@ -70,6 +90,27 @@ class TaskBase(BaseModel):
                 raise ValueError('Each tag must be 30 characters or less')
         return unique_tags if unique_tags else None
 
+    @field_validator('recurrence_pattern')
+    @classmethod
+    def validate_recurrence_pattern(cls, v: Optional[str], info) -> Optional[str]:
+        """Validate recurrence pattern"""
+        if v is None:
+            return None
+        allowed_patterns = ['daily', 'weekly', 'monthly']
+        if v not in allowed_patterns:
+            raise ValueError(f'Recurrence pattern must be one of: {", ".join(allowed_patterns)}')
+        return v
+
+    @field_validator('recurrence_interval')
+    @classmethod
+    def validate_recurrence_interval(cls, v: Optional[int], info) -> Optional[int]:
+        """Validate recurrence interval"""
+        if v is None:
+            return None
+        if v < 1 or v > 365:
+            raise ValueError('Recurrence interval must be between 1 and 365')
+        return v
+
 class TaskCreate(TaskBase):
     pass
 
@@ -91,3 +132,12 @@ class Task(TaskBase):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+class LoginResponse(BaseModel):
+    """Response for successful login (token is in httpOnly cookie)"""
+    message: str
+    user: User
+
+class RefreshResponse(BaseModel):
+    """Response for successful token refresh (token is in httpOnly cookie)"""
+    message: str
