@@ -7,21 +7,30 @@ from typing import List, Dict, Any, Optional
 from google import genai
 from google.genai import types
 from .mcp_server import MCPTools
+from .api_key_rotation import get_rotation_service
 
 logger = logging.getLogger(__name__)
 
-# Validate and configure Gemini client
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-if not GEMINI_API_KEY:
-    logger.error("GEMINI_API_KEY environment variable is not set")
-    client = None
-else:
+# Initialize API key rotation service
+try:
+    rotation_service = get_rotation_service()
+    logger.info(f"API key rotation service initialized with {rotation_service.get_status()['total_keys']} key(s)")
+except Exception as e:
+    logger.error(f"Failed to initialize API key rotation service: {str(e)}")
+    rotation_service = None
+
+# Initialize Gemini client with current key from rotation service
+client = None
+if rotation_service:
     try:
-        client = genai.Client(api_key=GEMINI_API_KEY)
-        logger.info("Gemini client initialized successfully")
+        current_key = rotation_service.get_current_key()
+        client = genai.Client(api_key=current_key)
+        logger.info("Gemini client initialized successfully with rotation service")
     except Exception as e:
         logger.error(f"Failed to initialize Gemini client: {type(e).__name__}")
         client = None
+else:
+    logger.error("Cannot initialize Gemini client: rotation service not available")
 
 # System prompt for the AI agent
 SYSTEM_PROMPT = """You are TaskBot, a friendly and helpful AI assistant specialized in task management. Your purpose is to help users organize and manage their todo tasks efficiently through natural conversation.
@@ -331,12 +340,43 @@ def run_agent(user_id: int, message: str, conversation_history: Optional[List[Di
         # Check for quota limit errors (429 RESOURCE_EXHAUSTED)
         error_str = str(e)
         if "429" in error_str and "RESOURCE_EXHAUSTED" in error_str:
-            return (
-                "⚠️ I've reached my daily API quota limit. "
-                "The free tier allows 20 requests per day. "
-                "Please try again tomorrow, or contact your administrator to upgrade the API plan. "
-                "Learn more at: https://ai.google.dev/gemini-api/docs/rate-limits"
-            )
+            # Try to rotate to next API key
+            if rotation_service:
+                logger.info("Attempting to rotate API key due to quota exhaustion")
+                rotation_success = rotation_service.rotate_key(reason="quota_exceeded")
+
+                if rotation_success:
+                    # Reinitialize client with new key
+                    try:
+                        global client
+                        new_key = rotation_service.get_current_key()
+                        client = genai.Client(api_key=new_key)
+                        logger.info("Successfully rotated to new API key, retrying request")
+
+                        # Retry the request once with new key
+                        return run_agent(user_id, message, conversation_history)
+                    except Exception as retry_error:
+                        logger.error(f"Failed to retry with new key: {str(retry_error)}")
+                        # Fall through to error message
+                else:
+                    logger.error("All API keys exhausted")
+
+            # All keys exhausted or rotation failed
+            status = rotation_service.get_status() if rotation_service else {}
+            available_keys = status.get('available_keys', 0)
+
+            if available_keys > 0:
+                return (
+                    "⚠️ I've reached the API quota limit. Switching to backup key... "
+                    "Please try your request again in a moment."
+                )
+            else:
+                return (
+                    "⚠️ All API keys have reached their daily quota limits. "
+                    "The free tier allows 20 requests per day per key. "
+                    "Please try again tomorrow, or contact your administrator to add more API keys. "
+                    "Learn more at: https://ai.google.dev/gemini-api/docs/rate-limits"
+                )
 
         # Check for authentication errors
         if "403" in error_str and "PERMISSION_DENIED" in error_str:

@@ -234,6 +234,18 @@ try:
 except Exception as e:
     logger.error(f"Failed to import chat router: {str(e)}", exc_info=True)
 
+# Admin router for monitoring and management
+try:
+    logger.info("Importing admin router...")
+    from .api import admin
+    logger.info("Admin router imported successfully")
+
+    # Register admin API (no legacy version needed)
+    app.include_router(admin.router, tags=["admin"])
+    logger.info("Admin router registered")
+except Exception as e:
+    logger.error(f"Failed to import admin router: {str(e)}", exc_info=True)
+
 
 
 @app.exception_handler(HTTPException)
