@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getTasks, createTask, updateTask, deleteTask } from '../../services/task_service';
+import { logout } from '../../services/auth_service';
 import { useError } from '../../providers/ErrorProvider';
 import ThemeToggle from '../../components/ThemeToggle';
 import { LogOut, Menu } from 'lucide-react';
@@ -32,6 +33,7 @@ interface TaskItem {
 
 interface ApiError {
   response?: {
+    status?: number;
     data?: {
       message?: string;
       detail?: string;
@@ -48,12 +50,6 @@ export default function KanbanPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-
     const fetchTasks = async () => {
       try {
         const response = await getTasks();
@@ -65,6 +61,13 @@ export default function KanbanPage() {
         setTasks(tasksWithSubtasks);
       } catch (err: unknown) {
         const apiError = err as ApiError;
+
+        // If unauthorized (401/403), redirect to login
+        if (apiError?.response?.status === 401 || apiError?.response?.status === 403) {
+          router.push('/login');
+          return;
+        }
+
         setError(apiError?.response?.data?.message || 'Failed to fetch tasks');
         console.error(err);
       } finally {
@@ -131,8 +134,8 @@ export default function KanbanPage() {
       console.error('Delete task error:', err);
     }
   };
-  const handleLogout = () => {
-    localStorage.removeItem('token');
+  const handleLogout = async () => {
+    await logout();
     router.push('/login');
   };
 

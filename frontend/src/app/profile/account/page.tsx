@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { logout } from '@/src/services/auth_service';
 import Sidebar from '@/components/Sidebar';
 import ThemeToggle from '@/src/components/ThemeToggle';
 import { LogOut, Menu, User, Mail, Calendar, CheckCircle2, Clock, TrendingUp, Edit2, Save, X, Shield, Trash2, Download } from 'lucide-react';
@@ -84,8 +85,8 @@ export default function AccountPage() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
+  const handleLogout = async () => {
+    await logout();
     router.push('/login');
   };
 

@@ -17,6 +17,7 @@ interface TaskItem {
   is_completed: boolean;
   priority: string;
   category?: string;
+  tags?: string[];
   due_date?: string;
   subtasks: Subtask[];
 }
@@ -27,7 +28,10 @@ export default function TaskList({
   onDelete,
   onReorder,
   focusedIndex,
-  onKeyDown
+  onKeyDown,
+  selectionMode = false,
+  selectedTaskIds = new Set(),
+  onToggleSelection
 }: {
   tasks: TaskItem[];
   onUpdate: (id: number, task: TaskItem) => Promise<void> | void;
@@ -35,6 +39,9 @@ export default function TaskList({
   onReorder: (startIndex: number, endIndex: number) => void;
   focusedIndex: number | null;
   onKeyDown?: (e: KeyboardEvent) => void;
+  selectionMode?: boolean;
+  selectedTaskIds?: Set<number>;
+  onToggleSelection?: (taskId: number) => void;
 }) {
   if (tasks.length === 0) {
     return (
@@ -77,6 +84,9 @@ export default function TaskList({
                         onUpdate={onUpdate}
                         onDelete={onDelete}
                         isFocused={index === focusedIndex}
+                        selectionMode={selectionMode}
+                        isSelected={selectedTaskIds.has(task.id)}
+                        onToggleSelection={onToggleSelection}
                       />
                     </div>
                   )}

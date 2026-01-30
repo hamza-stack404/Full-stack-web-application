@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getTasks } from '../../services/task_service';
+import { logout } from '../../services/auth_service';
 import { useError } from '../../providers/ErrorProvider';
 import ThemeToggle from '../../components/ThemeToggle';
 import { LogOut, Menu } from 'lucide-react';
@@ -33,6 +34,7 @@ interface TaskItem {
 
 interface ApiError {
   response?: {
+    status?: number;
     data?: {
       message?: string;
     };
@@ -50,12 +52,6 @@ export default function CalendarPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-
     const fetchTasks = async () => {
       try {
         const response = await getTasks();
@@ -67,6 +63,13 @@ export default function CalendarPage() {
         setTasks(tasksWithSubtasks);
       } catch (err: unknown) {
         const apiError = err as ApiError;
+
+        // If unauthorized (401/403), redirect to login
+        if (apiError?.response?.status === 401 || apiError?.response?.status === 403) {
+          router.push('/login');
+          return;
+        }
+
         setError(apiError?.response?.data?.message || 'Failed to fetch tasks');
         console.error(err);
       } finally {
@@ -86,8 +89,8 @@ export default function CalendarPage() {
     setTasks(tasks.map(task => task.id === id ? updatedTask : task));
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
+  const handleLogout = async () => {
+    await logout();
     router.push('/login');
   };
 

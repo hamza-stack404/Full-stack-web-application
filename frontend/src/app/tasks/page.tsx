@@ -4,11 +4,13 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getTasks, createTask, updateTask, deleteTask } from '@/src/services/task_service';
+import { logout } from '@/src/services/auth_service';
 import TaskList from '@/src/components/TaskList';
 import AddTaskForm from '@/src/components/AddTaskForm';
+import BulkActionsToolbar from '@/src/components/BulkActionsToolbar';
 import { useError } from '@/src/providers/ErrorProvider';
 import ThemeToggle from '@/src/components/ThemeToggle';
-import { LogOut, Menu, Plus } from 'lucide-react';
+import { LogOut, Menu, Plus, CheckSquare } from 'lucide-react';
 import { Tooltip } from '@/src/components/ui/tooltip';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -23,6 +25,7 @@ import { requestNotificationPermission, checkUpcomingTasks, showTaskCompletedNot
 import { useKeyboardShortcuts } from '@/src/hooks/useKeyboardShortcuts';
 import { useKeyboardNavigation } from '@/src/hooks/useKeyboardNavigation';
 import KeyboardShortcutsModal from '@/src/components/KeyboardShortcutsModal';
+import { toast } from 'sonner';
 
 interface Subtask {
   id: number;
@@ -36,12 +39,14 @@ interface TaskItem {
   is_completed: boolean;
   priority: string;
   category?: string;
+  tags?: string[];
   due_date?: string;
   subtasks: Subtask[];
 }
 
 interface ApiError {
   response?: {
+    status?: number;
     data?: {
       message?: string;
       detail?: string;
@@ -63,6 +68,8 @@ export default function Tasks() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showFab, setShowFab] = useState(false);
   const [selectedTaskIndex, setSelectedTaskIndex] = useState<number | null>(null);
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<number>>(new Set());
+  const [selectionMode, setSelectionMode] = useState(false);
   const addTaskFormRef = useRef<HTMLDivElement>(null);
   const addTaskInputRef = useRef<HTMLInputElement>(null);
 
@@ -165,15 +172,18 @@ export default function Tasks() {
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-
     const fetchTasks = async () => {
       try {
         const response = await getTasks();
+
+        // Ensure response.data is an array before mapping
+        if (!response.data || !Array.isArray(response.data)) {
+          console.error('Invalid response format:', response);
+          setTasks([]);
+          setLoading(false);
+          return;
+        }
+
         const tasksWithSubtasks = response.data.map(task => ({
           ...task,
           subtasks: task.subtasks || [],
@@ -181,6 +191,13 @@ export default function Tasks() {
         setTasks(tasksWithSubtasks);
       } catch (err: unknown) {
         const apiError = err as ApiError;
+
+        // If unauthorized (401/403), redirect to login
+        if (apiError?.response?.status === 401 || apiError?.response?.status === 403) {
+          router.push('/login');
+          return;
+        }
+
         const errorMessage = apiError?.response?.data?.message ||
                             apiError?.response?.data?.detail ||
                             apiError?.message ||
@@ -267,8 +284,112 @@ export default function Tasks() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
+  // Bulk operations
+  const toggleTaskSelection = (taskId: number) => {
+    const newSelection = new Set(selectedTaskIds);
+    if (newSelection.has(taskId)) {
+      newSelection.delete(taskId);
+    } else {
+      newSelection.add(taskId);
+    }
+    setSelectedTaskIds(newSelection);
+
+    // Auto-enable selection mode when selecting tasks
+    if (newSelection.size > 0 && !selectionMode) {
+      setSelectionMode(true);
+    }
+  };
+
+  const selectAllTasks = () => {
+    const allTaskIds = new Set(filteredAndSortedTasks.map(task => task.id));
+    setSelectedTaskIds(allTaskIds);
+    setSelectionMode(true);
+  };
+
+  const clearSelection = () => {
+    setSelectedTaskIds(new Set());
+    setSelectionMode(false);
+  };
+
+  const handleBulkComplete = async () => {
+    const selectedTasks = tasks.filter(task => selectedTaskIds.has(task.id));
+    const originalTasks = tasks;
+
+    // Optimistically update UI
+    setTasks(tasks.map(task =>
+      selectedTaskIds.has(task.id) ? { ...task, is_completed: true } : task
+    ));
+
+    try {
+      // Update all selected tasks
+      await Promise.all(
+        selectedTasks.map(task =>
+          updateTask(task.id, { ...task, is_completed: true })
+        )
+      );
+      clearSelection();
+      toast.success(`Completed ${selectedTasks.length} task(s)`);
+    } catch (err: unknown) {
+      setTasks(originalTasks);
+      const apiError = err as ApiError;
+      const errorMessage = apiError?.response?.data?.message || 'Failed to complete tasks';
+      setError(errorMessage);
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const selectedCount = selectedTaskIds.size;
+    const originalTasks = tasks;
+
+    // Optimistically update UI
+    setTasks(tasks.filter(task => !selectedTaskIds.has(task.id)));
+
+    try {
+      // Delete all selected tasks
+      await Promise.all(
+        Array.from(selectedTaskIds).map(taskId => deleteTask(taskId))
+      );
+      clearSelection();
+      toast.success(`Deleted ${selectedCount} task(s)`);
+    } catch (err: unknown) {
+      setTasks(originalTasks);
+      const apiError = err as ApiError;
+      const errorMessage = apiError?.response?.data?.message || 'Failed to delete tasks';
+      setError(errorMessage);
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleBulkChangePriority = async (priority: string) => {
+    const selectedTasks = tasks.filter(task => selectedTaskIds.has(task.id));
+    const originalTasks = tasks;
+
+    // Optimistically update UI
+    setTasks(tasks.map(task =>
+      selectedTaskIds.has(task.id) ? { ...task, priority } : task
+    ));
+
+    try {
+      // Update all selected tasks
+      await Promise.all(
+        selectedTasks.map(task =>
+          updateTask(task.id, { ...task, priority })
+        )
+      );
+      clearSelection();
+      toast.success(`Updated priority for ${selectedTasks.length} task(s)`);
+    } catch (err: unknown) {
+      setTasks(originalTasks);
+      const apiError = err as ApiError;
+      const errorMessage = apiError?.response?.data?.message || 'Failed to update priority';
+      setError(errorMessage);
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleLogout = async () => {
+    await logout();
     router.push('/login');
   };
 
@@ -431,8 +552,26 @@ export default function Tasks() {
                   </SelectContent>
                 </Select>
               </Tooltip>
+              <Tooltip text="Select multiple tasks">
+                <button
+                  onClick={() => setSelectionMode(!selectionMode)}
+                  className={`btn-outline flex items-center gap-2 ${selectionMode ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500' : ''}`}
+                >
+                  <CheckSquare className="h-4 w-4" />
+                  {selectionMode ? 'Exit Select' : 'Select'}
+                </button>
+              </Tooltip>
             </div>
           </div>
+
+          <BulkActionsToolbar
+            selectedCount={selectedTaskIds.size}
+            onComplete={handleBulkComplete}
+            onDelete={handleBulkDelete}
+            onChangePriority={handleBulkChangePriority}
+            onSelectAll={selectAllTasks}
+            onClearSelection={clearSelection}
+          />
 
           <div
             className="animate-fadeInUp"
@@ -446,6 +585,9 @@ export default function Tasks() {
               onReorder={handleReorder}
               focusedIndex={focusedIndex}
               onKeyDown={handleKeyDown}
+              selectionMode={selectionMode}
+              selectedTaskIds={selectedTaskIds}
+              onToggleSelection={toggleTaskSelection}
             />
           </div>
           {error && (

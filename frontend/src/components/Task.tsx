@@ -22,6 +22,7 @@ interface TaskItem {
   is_completed: boolean;
   priority: string;
   category?: string;
+  tags?: string[];
   due_date?: string;
   subtasks: Subtask[];
 }
@@ -42,12 +43,18 @@ export default function Task({
   task,
   onUpdate,
   onDelete,
-  isFocused = false
+  isFocused = false,
+  selectionMode = false,
+  isSelected = false,
+  onToggleSelection
 }: {
   task: TaskItem;
   onUpdate: (id: number, task: TaskItem) => Promise<void> | void;
   onDelete: (id: number) => void;
   isFocused?: boolean;
+  selectionMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelection?: (taskId: number) => void;
 }) {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
@@ -106,12 +113,21 @@ export default function Task({
         className={`card-hover flex flex-col sm:flex-row items-start sm:items-center justify-between group p-4 gap-4 bg-white dark:bg-slate-900 rounded-lg shadow-sm border-l-4 ${priorityColors[task.priority]?.border} ${isFocused ? 'ring-2 ring-blue-500' : ''}`}
       >
         <div className="flex items-start sm:items-center gap-4 flex-1">
+          {selectionMode && onToggleSelection && (
+            <Checkbox
+              checked={isSelected}
+              onCheckedChange={() => onToggleSelection(task.id)}
+              onClick={(e) => e.stopPropagation()}
+              className="w-5 h-5 mt-1 sm:mt-0"
+            />
+          )}
           <FileText className="h-6 w-6 text-slate-400" />
           <div className="flex items-center gap-3 flex-1">
             <Checkbox
               id={`task-${task.id}`}
               checked={task.is_completed}
               onCheckedChange={() => handleUpdate({ ...task, is_completed: !task.is_completed })}
+              onClick={(e) => e.stopPropagation()}
               className="w-5 h-5 mt-1 sm:mt-0"
             />
             <div className="flex flex-col flex-1">
@@ -125,7 +141,7 @@ export default function Task({
               >
                 {task.title}
               </label>
-              <div className="flex sm:hidden items-center gap-4 mt-2">
+              <div className="flex sm:hidden items-center gap-4 mt-2 flex-wrap">
                 {task.due_date && (
                   <div className="flex items-center gap-1 text-xs text-slate-500">
                     <CalendarIcon className="h-4 w-4" />
@@ -137,12 +153,24 @@ export default function Task({
                     {task.category}
                   </span>
                 )}
+                {task.tags && task.tags.length > 0 && (
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {task.tags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="text-xs px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-4 self-end sm:self-center">
-          <div className="hidden sm:flex items-center gap-4">
+          <div className="hidden sm:flex items-center gap-4 flex-wrap">
             {task.due_date && (
               <div className="flex items-center gap-1 text-xs text-slate-500">
                 <CalendarIcon className="h-4 w-4" />
@@ -153,6 +181,18 @@ export default function Task({
               <span className={`text-xs px-2 py-1 rounded-full ${categoryColors[task.category] || 'bg-gray-100 dark:bg-gray-700'}`}>
                 {task.category}
               </span>
+            )}
+            {task.tags && task.tags.length > 0 && (
+              <div className="flex items-center gap-1 flex-wrap">
+                {task.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="text-xs px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
           <motion.button

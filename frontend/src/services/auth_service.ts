@@ -1,44 +1,70 @@
 import axios, { AxiosError } from 'axios';
 
-// Determine if we're in development or production
-const isDevelopment = typeof window !== 'undefined' &&
-                    (window.location.hostname === 'localhost' ||
-                     window.location.hostname === '127.0.0.1');
+// Helper function to get CSRF token from cookie
+const getCsrfToken = (): string | null => {
+  if (typeof document === 'undefined') return null;
+
+  const name = 'csrf_token=';
+  const decodedCookie = decodeURIComponent(document.cookie);
+  const cookieArray = decodedCookie.split(';');
+
+  for (let cookie of cookieArray) {
+    cookie = cookie.trim();
+    if (cookie.indexOf(name) === 0) {
+      return cookie.substring(name.length);
+    }
+  }
+  return null;
+};
 
 // Use relative paths for development (with Next.js rewrites) and absolute for production
 const getBaseURL = () => {
-  if (isDevelopment) {
-    // For development, use relative paths that will be rewritten by Next.js
-    return '';
+  // Check if we have a local development URL in environment
+  const envUrl = process.env.NEXT_PUBLIC_API_URL;
+
+  // If environment variable points to localhost, use relative paths for Next.js rewrites
+  if (envUrl && (envUrl.includes('localhost') || envUrl.includes('127.0.0.1'))) {
+    return ''; // Use relative paths that will be rewritten by Next.js
   }
 
-  // For production, use the environment variable or fallback
-  // Remove /api suffix since we'll add it explicitly in the calls
-  const envUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (envUrl && envUrl.endsWith('/api')) {
-    return envUrl.slice(0, -4); // Remove '/api' suffix
+  // For production, use the environment variable
+  if (envUrl) {
+    // Remove /api suffix since we'll add it explicitly in the calls
+    if (envUrl.endsWith('/api')) {
+      return envUrl.slice(0, -4);
+    }
+    return envUrl;
   }
-  return 'https://hamza-todo-backend.vercel.app'; // Base URL without /api
+
+  // Fallback to empty string to use relative paths
+  return '';
 };
 
 const BASE_URL = getBaseURL();
 
-console.log('Auth Service Base URL:', BASE_URL);
-
 // Create axios instance for auth requests
 const authClient = axios.create({
   baseURL: BASE_URL,
+  withCredentials: true,  // Include cookies in requests
 });
 
-// Add request interceptor to handle development vs production paths
+// Add request interceptor to handle path structure and CSRF token
 authClient.interceptors.request.use(
   (config) => {
-    // For development, ensure we're using the correct path structure
-    if (isDevelopment) {
-      if (config.url && !config.url.startsWith('/')) {
-        config.url = `/${config.url}`;
+    // Ensure paths start with / when using relative URLs
+    if (BASE_URL === '' && config.url && !config.url.startsWith('/')) {
+      config.url = `/${config.url}`;
+    }
+
+    // Add CSRF token to headers for state-changing requests
+    const method = config.method?.toUpperCase();
+    if (method && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+      const csrfToken = getCsrfToken();
+      if (csrfToken) {
+        config.headers['X-CSRF-Token'] = csrfToken;
       }
     }
+
     return config;
   },
   (error) => {
@@ -50,7 +76,6 @@ authClient.interceptors.request.use(
 authClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('Auth API Error:', error.response || error.message || error);
     return Promise.reject(error);
   }
 );
@@ -67,14 +92,11 @@ export const signup = async (username: string, email: string, password: string) 
   } catch (error: any) {
     if (error.response) {
       // Server responded with error status
-      console.error('Signup error response:', error.response);
       throw error;
     } else if (error.request) {
       // Request made but no response
-      console.error('Signup error - no response:', error.request);
       throw new Error('No response from server during signup');
     } else {
-      console.error('Signup generic error:', error.message);
       throw new Error(error.message || 'Signup failed');
     }
   }
@@ -95,15 +117,27 @@ export const login = async (email: string, password: string) => {
   } catch (error: any) {
     if (error.response) {
       // Server responded with error status
-      console.error('Login error response:', error.response);
       throw error;
     } else if (error.request) {
       // Request made but no response
-      console.error('Login error - no response:', error.request);
       throw new Error('No response from server during login');
     } else {
-      console.error('Login generic error:', error.message);
       throw new Error(error.message || 'Login failed');
     }
+  }
+};
+
+export const logout = async () => {
+  try {
+    const url = '/api/logout';
+    await authClient.post(url);
+    // Clear any client-side state if needed
+    if (typeof window !== 'undefined') {
+      // Clear localStorage items that might exist
+      localStorage.removeItem('hasSeenWelcomeModal');
+    }
+  } catch (error: any) {
+    // Even if logout fails on backend, we should still redirect to login
+    console.error('Logout error:', error);
   }
 };

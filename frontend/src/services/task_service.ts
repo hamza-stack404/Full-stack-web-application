@@ -1,5 +1,22 @@
 import axios from 'axios';
 
+// Helper function to get CSRF token from cookie
+const getCsrfToken = (): string | null => {
+  if (typeof document === 'undefined') return null;
+
+  const name = 'csrf_token=';
+  const decodedCookie = decodeURIComponent(document.cookie);
+  const cookieArray = decodedCookie.split(';');
+
+  for (let cookie of cookieArray) {
+    cookie = cookie.trim();
+    if (cookie.indexOf(name) === 0) {
+      return cookie.substring(name.length);
+    }
+  }
+  return null;
+};
+
 const isDevelopment = typeof window !== 'undefined' &&
                     (window.location.hostname === 'localhost' ||
                      window.location.hostname === '127.0.0.1');
@@ -11,18 +28,21 @@ const getBaseURL = () => {
     return '';
   }
 
-  // For production, use the environment variable or fallback
+  // For production, use the environment variable
   // Remove /api suffix since we'll add it explicitly in the calls
   const envUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (envUrl && envUrl.endsWith('/api')) {
-    return envUrl.slice(0, -4); // Remove '/api' suffix
+  if (envUrl) {
+    if (envUrl.endsWith('/api')) {
+      return envUrl.slice(0, -4); // Remove '/api' suffix
+    }
+    return envUrl;
   }
-  return envUrl || 'https://hamza-todo-backend.vercel.app'; // Base URL without /api
+
+  // Fallback to empty string to use relative paths
+  return '';
 };
 
 const BASE_URL = getBaseURL();
-
-console.log('Task Service Base URL:', BASE_URL);
 
 export interface Subtask {
   id: number;
@@ -36,7 +56,11 @@ export interface TaskData {
   priority?: string;
   due_date?: string;
   category?: string;
+  tags?: string[];
   subtasks?: Subtask[];
+  is_recurring?: boolean;
+  recurrence_pattern?: string;
+  recurrence_interval?: number;
 }
 
 export interface Task extends TaskData {
@@ -44,26 +68,33 @@ export interface Task extends TaskData {
   priority: string;
   due_date?: string;
   category?: string;
+  tags?: string[];
   subtasks?: Subtask[];
+  is_recurring?: boolean;
+  recurrence_pattern?: string;
+  recurrence_interval?: number;
   updated_at?: string;
 }
 
-// Create axios instance with defaults
+// Create axios instance with credentials support for httpOnly cookies
 const apiClient = axios.create({
   baseURL: BASE_URL,
+  withCredentials: true,  // Include cookies in requests
 });
 
-// Add request interceptor to include auth token and handle data transformation
+// Add request interceptor to handle data transformation and CSRF token
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-      console.log('Request with token:', config.url, 'Token exists:', !!token);
-    } else {
-      console.warn('No token found for request:', config.url);
-    }
     config.headers['Content-Type'] = 'application/json';
+
+    // Add CSRF token to headers for state-changing requests
+    const method = config.method?.toUpperCase();
+    if (method && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+      const csrfToken = getCsrfToken();
+      if (csrfToken) {
+        config.headers['X-CSRF-Token'] = csrfToken;
+      }
+    }
 
     // Transform request data to ensure proper format for backend
     if (config.data && config.method === 'post') {
@@ -91,13 +122,8 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('API Error:', error.response || error.message || error);
-
     // Handle 401 Unauthorized errors
     if (error.response && error.response.status === 401) {
-      // Clear invalid token
-      localStorage.removeItem('token');
-
       // Redirect to login page if not already there
       if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
         window.location.href = '/login';
