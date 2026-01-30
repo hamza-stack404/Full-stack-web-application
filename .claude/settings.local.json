@@ -7,7 +7,9 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push)",
-      "Bash(alembic revision:*)"
+      "Bash(alembic revision:*)",
+      "Bash(git pull:*)",
+      "Bash(git merge 002-ai-chatbot -m \"$\\(cat <<''EOF''\nMerge Phase III: AI Chatbot with Security Enhancements\n\nThis merge brings the complete AI chatbot feature with comprehensive \nsecurity enhancements and bug fixes from the 002-ai-chatbot branch.\n\nMajor Features:\n- AI Chatbot \\(Phase III\\) with Gemini AI integration\n- Tags/Labels system for task organization\n- Bulk operations for task management\n- Security hardening \\(CSRF, input sanitization, API key protection\\)\n- Better error messages for quota limits and auth failures\n- TypeScript fixes for production build\n- Comprehensive test infrastructure\n\nStatistics:\n- 29 commits merged\n- 50+ files changed\n- 5 critical security issues fixed\n- 4 major features added\n\nAll changes tested and documented.\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ]
   }
 }
