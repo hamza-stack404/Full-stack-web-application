@@ -39,19 +39,33 @@ export default function Login() {
     }
     try {
       const response = await login(usernameOrEmail, password);
-      console.log('Login response:', response);
-      
-      if (response.access_token) {
-        localStorage.setItem('token', response.access_token);
-        console.log('Token saved:', response.access_token);
-        router.push('/tasks');
-      } else {
-        setError('No token received from server');
+
+      // Cookie is automatically set by backend, no need to store token
+      // Just redirect to tasks page
+      router.push('/tasks');
+    } catch (err: any) {
+
+      // Handle different error response formats
+      let errorMessage = 'Failed to log in';
+
+      if (err?.response?.data?.detail) {
+        const detail = err.response.data.detail;
+
+        // Check if detail is an array (Pydantic validation errors)
+        if (Array.isArray(detail)) {
+          // Extract and format validation error messages
+          errorMessage = detail.map((error: any) => {
+            const field = error.loc?.[error.loc.length - 1] || 'field';
+            return `${field}: ${error.msg}`;
+          }).join(', ');
+        } else if (typeof detail === 'string') {
+          // Simple string error message
+          errorMessage = detail;
+        }
+      } else if (err?.message) {
+        errorMessage = err.message;
       }
-    } catch (err: unknown) {
-      console.error('Login error:', err);
-      const apiError = err as ApiError;
-      const errorMessage = apiError?.response?.data?.detail || apiError?.message || 'Failed to log in';
+
       setError(errorMessage);
     }
   };

@@ -4,20 +4,24 @@ import { useState, forwardRef, useImperativeHandle, useRef } from 'react';
 import { toast } from "sonner";
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plus, Calendar as CalendarIcon } from 'lucide-react';
+import { Plus, Calendar as CalendarIcon, Repeat } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { Checkbox } from '@/components/ui/checkbox';
 
-const AddTaskForm = forwardRef<any, { onAdd: (task: { title: string; is_completed: boolean; priority: string, category?: string, tags?: string[], due_date?: string }) => Promise<void> }>(({ onAdd }, ref) => {
+const AddTaskForm = forwardRef<any, { onAdd: (task: { title: string; is_completed: boolean; priority: string, category?: string, tags?: string[], due_date?: string, is_recurring?: boolean, recurrence_pattern?: string, recurrence_interval?: number }) => Promise<void> }>(({ onAdd }, ref) => {
   const [title, setTitle] = useState('');
   const [priority, setPriority] = useState('medium');
   const [category, setCategory] = useState('none');
   const [date, setDate] = useState<Date | undefined>();
   const [tagsInput, setTagsInput] = useState('');
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrencePattern, setRecurrencePattern] = useState('daily');
+  const [recurrenceInterval, setRecurrenceInterval] = useState(1);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useImperativeHandle(ref, () => ({
@@ -45,12 +49,18 @@ const AddTaskForm = forwardRef<any, { onAdd: (task: { title: string; is_complete
         priority,
         category: category === 'none' ? undefined : category,
         tags: tags.length > 0 ? tags : undefined,
-        due_date: dueDateStr
+        due_date: dueDateStr,
+        is_recurring: isRecurring,
+        recurrence_pattern: isRecurring ? recurrencePattern : undefined,
+        recurrence_interval: isRecurring ? recurrenceInterval : undefined
       });
       setTitle('');
       setCategory('none');
       setDate(undefined);
       setTagsInput('');
+      setIsRecurring(false);
+      setRecurrencePattern('daily');
+      setRecurrenceInterval(1);
       toast.success("Task added successfully!");
     } catch (error) {
       toast.error("Failed to add task.");

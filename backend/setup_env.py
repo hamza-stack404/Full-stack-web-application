@@ -58,21 +58,74 @@ def create_env_from_template():
 
 
 def prompt_for_api_key():
-    """Prompt user to add their Gemini API key"""
+    """Prompt user to add their AI API key (OpenRouter or Gemini)"""
     print("\n" + "="*60)
-    print("GEMINI API KEY SETUP")
+    print("AI API KEY SETUP")
     print("="*60)
-    print("\nTo use AI chatbot features, you need a Gemini API key.")
-    print("\n[INFO] Get your API key from:")
-    print("   https://aistudio.google.com/app/apikey")
+    print("\nTo use AI chatbot features, you need an API key.")
+    print("\n[RECOMMENDED] OpenRouter API")
+    print("   - Supports multiple AI models (Claude, GPT-4, etc.)")
+    print("   - Get your key from: https://openrouter.ai/keys")
+    print("\n[ALTERNATIVE] Google Gemini API")
+    print("   - Google's AI model")
+    print("   - Get your key from: https://aistudio.google.com/app/apikey")
     print("\n[WARNING] Keep your API key secret! Never commit it to git.")
     print("\nOptions:")
-    print("  1. Add API key now")
-    print("  2. Skip (you can add it later by editing backend/.env)")
+    print("  1. Add OpenRouter API key (Recommended)")
+    print("  2. Add Gemini API key (Legacy)")
+    print("  3. Skip (you can add it later by editing backend/.env)")
 
-    choice = input("\nYour choice (1 or 2): ").strip()
+    choice = input("\nYour choice (1, 2, or 3): ").strip()
 
     if choice == "1":
+        # OpenRouter setup
+        api_key = input("\nPaste your OpenRouter API key: ").strip()
+
+        if not api_key:
+            print("[ERROR] No API key provided. Skipping...")
+            return False
+
+        if not api_key.startswith("sk-or-"):
+            print("[WARNING] OpenRouter API keys typically start with 'sk-or-'")
+            confirm = input("Continue anyway? (y/n): ").strip().lower()
+            if confirm != 'y':
+                print("[CANCELLED]")
+                return False
+
+        # Ask for model preference
+        print("\n[INFO] Popular OpenRouter models:")
+        print("  - anthropic/claude-3.5-sonnet (Recommended)")
+        print("  - openai/gpt-4-turbo")
+        print("  - google/gemini-pro")
+        print("  - meta-llama/llama-3.1-70b-instruct")
+
+        model = input("\nEnter model name (or press Enter for default): ").strip()
+        if not model:
+            model = "anthropic/claude-3.5-sonnet"
+
+        # Update .env file
+        env_file = Path(__file__).parent / ".env"
+        with open(env_file, 'r') as f:
+            content = f.read()
+
+        # Replace placeholders
+        content = content.replace(
+            'OPENROUTER_API_KEY=your-openrouter-api-key-here',
+            f'OPENROUTER_API_KEY={api_key}'
+        )
+        content = content.replace(
+            'OPENROUTER_MODEL=anthropic/claude-3.5-sonnet',
+            f'OPENROUTER_MODEL={model}'
+        )
+
+        with open(env_file, 'w') as f:
+            f.write(content)
+
+        print(f"[OK] OpenRouter API key added with model: {model}")
+        return True
+
+    elif choice == "2":
+        # Gemini setup (legacy)
         api_key = input("\nPaste your Gemini API key: ").strip()
 
         if not api_key:
@@ -80,7 +133,7 @@ def prompt_for_api_key():
             return False
 
         if not api_key.startswith("AIza"):
-            print("[WARNING] API key doesn't look valid (should start with 'AIza')")
+            print("[WARNING] Gemini API keys typically start with 'AIza'")
             confirm = input("Continue anyway? (y/n): ").strip().lower()
             if confirm != 'y':
                 print("[CANCELLED]")
@@ -91,16 +144,16 @@ def prompt_for_api_key():
         with open(env_file, 'r') as f:
             content = f.read()
 
-        # Replace placeholder
+        # Uncomment and replace Gemini key
         content = content.replace(
-            'GEMINI_API_KEY=your-gemini-api-key-here',
+            '# GEMINI_API_KEY=your-gemini-api-key-here',
             f'GEMINI_API_KEY={api_key}'
         )
 
         with open(env_file, 'w') as f:
             f.write(content)
 
-        print("[OK] API key added to .env file")
+        print("[OK] Gemini API key added to .env file")
         return True
 
     print("\n[SKIPPED] You can add your API key later by editing backend/.env")
@@ -135,8 +188,18 @@ def validate_env_file():
         print("   Run this script again to generate a secure secret")
         return False
 
-    if 'your-gemini-api-key-here' in content:
-        print("[INFO] GEMINI_API_KEY not configured (AI features will be disabled)")
+    # Check AI API key configuration
+    has_openrouter = 'OPENROUTER_API_KEY=' in content and 'your-openrouter-api-key-here' not in content
+    has_gemini = 'GEMINI_API_KEY=' in content and 'your-gemini-api-key-here' not in content and '# GEMINI_API_KEY=' not in content
+
+    if not has_openrouter and not has_gemini:
+        print("[INFO] No AI API key configured (AI chatbot features will be disabled)")
+        print("   - Add OpenRouter key (recommended): https://openrouter.ai/keys")
+        print("   - Or add Gemini key: https://aistudio.google.com/app/apikey")
+    elif has_openrouter:
+        print("[OK] OpenRouter API key configured")
+    elif has_gemini:
+        print("[OK] Gemini API key configured (legacy)")
 
     print("[OK] Environment configuration is valid")
     return True

@@ -11,10 +11,12 @@ Mako
 MarkupSafe
 email-validator
 bleach>=6.0.0
-# Phase III: AI Chatbot dependencies (T001)
-google-genai>=1.0.0
 
-# Testing dependencies (Phase III)
+# AI Chatbot dependencies
+openai>=1.0.0  # OpenRouter uses OpenAI-compatible API
+google-genai>=1.0.0  # Legacy support (optional)
+
+# Testing dependencies
 pytest>=7.4.0
 pytest-asyncio>=0.21.0
 pytest-cov>=4.1.0

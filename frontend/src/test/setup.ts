@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom'
 import { cleanup } from '@testing-library/react'
-import { afterEach } from 'vitest'
+import { afterEach, vi } from 'vitest'
 
 // Cleanup after each test
 afterEach(() => {
@@ -28,6 +28,21 @@ vi.mock('next-themes', () => ({
     theme: 'light',
     setTheme: vi.fn(),
   }),
+}))
+
+// Mock sonner toast
+vi.mock('sonner', () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
+    warning: vi.fn(),
+  },
+}))
+
+// Mock react-swipeable
+vi.mock('react-swipeable', () => ({
+  useSwipeable: () => ({}),
 }))
 
 // Mock window.matchMedia

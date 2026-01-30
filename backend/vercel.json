@@ -5,21 +5,14 @@
       "use": "@vercel/python",
       "config": {
         "maxLambdaSize": "15mb",
-        "runtime": "python3.9"
+        "runtime": "python3.11"
       }
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "serverless/index.py",
-      "headers": {
-        "Access-Control-Allow-Origin": "https://hamza-full-stack-web.vercel.app",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Expose-Headers": "*"
-      }
+      "dest": "serverless/index.py"
     }
   ],
   "env": {

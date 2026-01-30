@@ -17,8 +17,14 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Add tags column to task table
-    op.add_column('task', sa.Column('tags', postgresql.JSON(astext_type=sa.Text()), nullable=True))
+    # Add tags column to task table if it doesn't exist
+    from sqlalchemy import inspect
+    conn = op.get_bind()
+    inspector = inspect(conn)
+    columns = [col['name'] for col in inspector.get_columns('task')]
+
+    if 'tags' not in columns:
+        op.add_column('task', sa.Column('tags', postgresql.JSON(astext_type=sa.Text()), nullable=True))
 
 
 def downgrade() -> None:

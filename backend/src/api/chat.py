@@ -9,7 +9,7 @@ import logging
 
 from ..auth import get_current_user, get_db
 from ..models import User, Conversation, Message
-from ..services.agent_service import run_agent
+from ..services.ai_service import run_agent  # Auto-selects OpenRouter or Gemini
 from ..sanitization import sanitize_chat_message
 
 logger = logging.getLogger(__name__)

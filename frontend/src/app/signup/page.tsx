@@ -52,8 +52,27 @@ export default function Signup() {
       await signup(username, email, password);
       router.push('/login');
     } catch (err: any) {
-      console.error('Signup error:', err);
-      const errorMessage = err?.response?.data?.detail || err?.message || 'Failed to sign up';
+      // Handle different error response formats
+      let errorMessage = 'Failed to sign up';
+
+      if (err?.response?.data?.detail) {
+        const detail = err.response.data.detail;
+
+        // Check if detail is an array (Pydantic validation errors)
+        if (Array.isArray(detail)) {
+          // Extract and format validation error messages
+          errorMessage = detail.map((error: any) => {
+            const field = error.loc?.[error.loc.length - 1] || 'field';
+            return `${field}: ${error.msg}`;
+          }).join(', ');
+        } else if (typeof detail === 'string') {
+          // Simple string error message
+          errorMessage = detail;
+        }
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+
       setError(errorMessage);
     }
   };

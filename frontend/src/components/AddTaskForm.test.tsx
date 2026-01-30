@@ -3,11 +3,10 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import AddTaskForm from './AddTaskForm'
 
-// Mock sonner toast
-vi.mock('sonner', () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
+// Mock framer-motion (requires JSX, must be in .tsx file)
+vi.mock('framer-motion', () => ({
+  motion: {
+    button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
   },
 }))
 
@@ -22,7 +21,7 @@ describe('AddTaskForm', () => {
     render(<AddTaskForm onAdd={mockOnAdd} />)
 
     expect(screen.getByPlaceholderText('Add a new task...')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /add task/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /add/i })).toBeInTheDocument()
   })
 
   it('allows user to type in the task input', async () => {
@@ -43,7 +42,7 @@ describe('AddTaskForm', () => {
     const input = screen.getByPlaceholderText('Add a new task...')
     await user.type(input, 'Buy groceries')
 
-    const submitButton = screen.getByRole('button', { name: /add task/i })
+    const submitButton = screen.getByRole('button', { name: /add/i })
     await user.click(submitButton)
 
     await waitFor(() => {
@@ -61,7 +60,7 @@ describe('AddTaskForm', () => {
     const user = userEvent.setup()
     render(<AddTaskForm onAdd={mockOnAdd} />)
 
-    const submitButton = screen.getByRole('button', { name: /add task/i })
+    const submitButton = screen.getByRole('button', { name: /add/i })
     await user.click(submitButton)
 
     expect(mockOnAdd).not.toHaveBeenCalled()
@@ -74,7 +73,7 @@ describe('AddTaskForm', () => {
     const input = screen.getByPlaceholderText('Add a new task...')
     await user.type(input, '   ')
 
-    const submitButton = screen.getByRole('button', { name: /add task/i })
+    const submitButton = screen.getByRole('button', { name: /add/i })
     await user.click(submitButton)
 
     expect(mockOnAdd).not.toHaveBeenCalled()
@@ -88,7 +87,7 @@ describe('AddTaskForm', () => {
     const input = screen.getByPlaceholderText('Add a new task...')
     await user.type(input, 'Buy groceries')
 
-    const submitButton = screen.getByRole('button', { name: /add task/i })
+    const submitButton = screen.getByRole('button', { name: /add/i })
     await user.click(submitButton)
 
     await waitFor(() => {
@@ -104,7 +103,7 @@ describe('AddTaskForm', () => {
     const input = screen.getByPlaceholderText('Add a new task...')
     await user.type(input, 'Test task')
 
-    const submitButton = screen.getByRole('button', { name: /add task/i })
+    const submitButton = screen.getByRole('button', { name: /add/i })
     await user.click(submitButton)
 
     await waitFor(() => {
@@ -142,7 +141,7 @@ describe('AddTaskForm', () => {
     const input = screen.getByPlaceholderText('Add a new task...')
     await user.type(input, 'Test task')
 
-    const submitButton = screen.getByRole('button', { name: /add task/i })
+    const submitButton = screen.getByRole('button', { name: /add/i })
     await user.click(submitButton)
 
     await waitFor(() => {
@@ -159,7 +158,7 @@ describe('AddTaskForm', () => {
     const input = screen.getByPlaceholderText('Add a new task...')
     await user.type(input, 'Test task')
 
-    const submitButton = screen.getByRole('button', { name: /add task/i })
+    const submitButton = screen.getByRole('button', { name: /add/i })
     await user.click(submitButton)
 
     await waitFor(() => {

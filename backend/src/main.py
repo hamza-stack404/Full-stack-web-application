@@ -21,8 +21,8 @@ logger = logging.getLogger(__name__)
 
 # Validate required environment variables
 required_env_vars = ['DATABASE_URL', 'BETTER_AUTH_SECRET']
-# GEMINI_API_KEY is optional for basic functionality
-optional_env_vars = ['GEMINI_API_KEY']
+# AI API keys are optional for basic functionality
+optional_env_vars = ['OPENROUTER_API_KEY', 'GEMINI_API_KEY']
 
 missing_vars = [var for var in required_env_vars if not os.getenv(var)]
 if missing_vars:
@@ -33,7 +33,7 @@ if missing_vars:
 # Warn about missing optional variables
 missing_optional = [var for var in optional_env_vars if not os.getenv(var)]
 if missing_optional:
-    logger.warning(f"Missing optional environment variables: {', '.join(missing_optional)}. Some features may not work.")
+    logger.warning(f"Missing optional environment variables: {', '.join(missing_optional)}. AI features may not work.")
 
 logger.info("Environment variables validated successfully")
 

@@ -3,24 +3,19 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Task from './Task'
 
-// Mock sonner toast
-vi.mock('sonner', () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-  },
+// Mock TaskDetailsModal to avoid rendering complex nested components
+vi.mock('./TaskDetailsModal', () => ({
+  default: ({ isOpen, onClose }: any) =>
+    isOpen ? <div data-testid="task-details-modal">Modal Open</div> : null,
 }))
 
-// Mock react-swipeable
-vi.mock('react-swipeable', () => ({
-  useSwipeable: () => ({}),
-}))
-
-// Mock framer-motion
+// Mock framer-motion (requires JSX, must be in .tsx file)
 vi.mock('framer-motion', () => ({
   motion: {
     div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+    button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
   },
+  AnimatePresence: ({ children }: any) => <>{children}</>,
 }))
 
 describe('Task', () => {
@@ -64,7 +59,9 @@ describe('Task', () => {
   it('renders task with category badge', () => {
     render(<Task task={mockTask} onUpdate={mockOnUpdate} onDelete={mockOnDelete} />)
 
-    expect(screen.getByText('work')).toBeInTheDocument()
+    // Category appears twice (mobile and desktop views), use getAllByText
+    const categoryBadges = screen.getAllByText('work')
+    expect(categoryBadges.length).toBeGreaterThan(0)
   })
 
   it('renders task without category when not provided', () => {
@@ -117,8 +114,9 @@ describe('Task', () => {
     }
     render(<Task task={taskWithDueDate} onUpdate={mockOnUpdate} onDelete={mockOnDelete} />)
 
-    // Check if date is rendered (format may vary)
-    expect(screen.getByText(/Jan/i)).toBeInTheDocument()
+    // Check if date is rendered (appears twice - mobile and desktop)
+    const dateElements = screen.getAllByText(/Jan/i)
+    expect(dateElements.length).toBeGreaterThan(0)
   })
 
   it('renders task with subtasks', () => {
@@ -140,9 +138,12 @@ describe('Task', () => {
     render(<Task task={mockTask} onUpdate={mockOnUpdate} onDelete={mockOnDelete} />)
 
     const taskElement = screen.getByText('Test Task').closest('[tabindex]')
+    expect(taskElement).toBeInTheDocument()
+
     if (taskElement) {
       fireEvent.keyDown(taskElement, { key: 'Enter', code: 'Enter' })
-      // Details modal should open (implementation specific)
+      // Verify modal opens
+      expect(screen.getByTestId('task-details-modal')).toBeInTheDocument()
     }
   })
 
@@ -170,15 +171,17 @@ describe('Task', () => {
     const highPriorityTask = { ...mockTask, priority: 'high' }
     render(<Task task={highPriorityTask} onUpdate={mockOnUpdate} onDelete={mockOnDelete} />)
 
-    const taskElement = screen.getByText('Test Task').closest('div')
-    expect(taskElement?.className).toContain('border-red')
+    // Find the main task container with the border color
+    const taskContainer = screen.getByText('Test Task').closest('.border-l-4')
+    expect(taskContainer?.className).toContain('border-red')
   })
 
   it('renders low priority task with green indicator', () => {
     const lowPriorityTask = { ...mockTask, priority: 'low' }
     render(<Task task={lowPriorityTask} onUpdate={mockOnUpdate} onDelete={mockOnDelete} />)
 
-    const taskElement = screen.getByText('Test Task').closest('div')
-    expect(taskElement?.className).toContain('border-green')
+    // Find the main task container with the border color
+    const taskContainer = screen.getByText('Test Task').closest('.border-l-4')
+    expect(taskContainer?.className).toContain('border-green')
   })
 })
