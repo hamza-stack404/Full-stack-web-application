@@ -10,20 +10,13 @@ import { Loader2 } from 'lucide-react';
 
 export default function ChatPage() {
   const router = useRouter();
-  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // Check for authentication token
-    const storedToken = localStorage.getItem('token');
-
-    if (!storedToken) {
-      // Redirect to login if not authenticated
-      router.push('/login');
-      return;
-    }
-
-    setToken(storedToken);
+    // Authentication is handled by cookies
+    // We'll let the ChatInterface component handle auth errors
+    setIsAuthenticated(true);
     setIsLoading(false);
   }, [router]);
 
@@ -35,13 +28,13 @@ export default function ChatPage() {
     );
   }
 
-  if (!token) {
+  if (!isAuthenticated) {
     return null;
   }
 
   return (
     <div className="h-[calc(100vh-4rem)] md:h-screen">
-      <ChatInterface token={token} />
+      <ChatInterface />
     </div>
   );
 }

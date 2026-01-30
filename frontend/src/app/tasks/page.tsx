@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getTasks, createTask, updateTask, deleteTask } from '@/src/services/task_service';
+import { logout } from '@/src/services/auth_service';
 import TaskList from '@/src/components/TaskList';
 import AddTaskForm from '@/src/components/AddTaskForm';
 import BulkActionsToolbar from '@/src/components/BulkActionsToolbar';
@@ -170,15 +171,18 @@ export default function Tasks() {
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-
     const fetchTasks = async () => {
       try {
         const response = await getTasks();
+
+        // Ensure response.data is an array before mapping
+        if (!response.data || !Array.isArray(response.data)) {
+          console.error('Invalid response format:', response);
+          setTasks([]);
+          setLoading(false);
+          return;
+        }
+
         const tasksWithSubtasks = response.data.map(task => ({
           ...task,
           subtasks: task.subtasks || [],
@@ -186,6 +190,13 @@ export default function Tasks() {
         setTasks(tasksWithSubtasks);
       } catch (err: unknown) {
         const apiError = err as ApiError;
+
+        // If unauthorized (401/403), redirect to login
+        if (apiError?.response?.status === 401 || apiError?.response?.status === 403) {
+          router.push('/login');
+          return;
+        }
+
         const errorMessage = apiError?.response?.data?.message ||
                             apiError?.response?.data?.detail ||
                             apiError?.message ||
@@ -376,8 +387,8 @@ export default function Tasks() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
+  const handleLogout = async () => {
+    await logout();
     router.push('/login');
   };
 

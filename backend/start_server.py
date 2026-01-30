@@ -6,8 +6,8 @@ Loads environment variables from .env file and starts uvicorn.
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
+# Load environment variables from .env file (override system env vars)
+load_dotenv(override=True)
 
 # Verify required environment variables are loaded
 required_vars = ['DATABASE_URL', 'BETTER_AUTH_SECRET']

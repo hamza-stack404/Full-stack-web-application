@@ -98,7 +98,10 @@
       "Bash(ping:*)",
       "Bash(tasklist:*)",
       "Bash(start /min cmd /c \"python -m uvicorn src.main:app --host 0.0.0.0 --port 8001 --reload\")",
-      "Bash(python -c \"from src.csrf import CSRFProtectionMiddleware; from src.sanitization import sanitize_chat_message; print\\(''[OK] All security modules import successfully''\\)\")"
+      "Bash(python -c \"from src.csrf import CSRFProtectionMiddleware; from src.sanitization import sanitize_chat_message; print\\(''[OK] All security modules import successfully''\\)\")",
+      "Bash(python -c \"import os; from dotenv import load_dotenv; load_dotenv\\(\\); print\\(''OPENROUTER_API_KEY:'', ''SET'' if os.getenv\\(''OPENROUTER_API_KEY''\\) else ''NOT SET''\\); print\\(''GEMINI_API_KEY:'', ''SET'' if os.getenv\\(''GEMINI_API_KEY''\\) else ''NOT SET''\\); print\\(''DATABASE_URL:'', ''SET'' if os.getenv\\(''DATABASE_URL''\\) else ''NOT SET''\\); print\\(''BETTER_AUTH_SECRET:'', ''SET'' if os.getenv\\(''BETTER_AUTH_SECRET''\\) else ''NOT SET''\\)\")",
+      "Bash(ping 127.0.0.1 -n 6)",
+      "Bash(ping 127.0.0.1 -n 3)"
     ]
   }
 }

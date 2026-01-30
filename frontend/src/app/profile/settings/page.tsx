@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { logout } from '@/src/services/auth_service';
 import Sidebar from '@/components/Sidebar';
 import ThemeToggle from '@/src/components/ThemeToggle';
 import { LogOut, Menu, Bell, Palette, Clock, Keyboard, Database, Zap, Globe, Layout } from 'lucide-react';
@@ -99,8 +100,8 @@ export default function SettingsPage() {
     toast.success('Setting updated successfully');
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
+  const handleLogout = async () => {
+    await logout();
     router.push('/login');
   };
 

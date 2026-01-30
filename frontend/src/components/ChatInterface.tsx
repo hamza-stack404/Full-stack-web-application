@@ -17,11 +17,7 @@ import {
   type Conversation,
 } from '@/lib/chat-api';
 
-interface ChatInterfaceProps {
-  token: string;
-}
-
-export default function ChatInterface({ token }: ChatInterfaceProps) {
+export default function ChatInterface() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -48,7 +44,7 @@ export default function ChatInterface({ token }: ChatInterfaceProps) {
   const loadConversations = async () => {
     try {
       setIsLoadingConversations(true);
-      const convs = await getConversations(token);
+      const convs = await getConversations();
       setConversations(convs);
 
       // Load the most recent conversation if exists
@@ -64,7 +60,7 @@ export default function ChatInterface({ token }: ChatInterfaceProps) {
 
   const loadConversation = async (conversationId: number) => {
     try {
-      const msgs = await getConversationMessages(conversationId, token);
+      const msgs = await getConversationMessages(conversationId);
       setMessages(msgs);
       setCurrentConversationId(conversationId);
     } catch (error) {
@@ -74,7 +70,7 @@ export default function ChatInterface({ token }: ChatInterfaceProps) {
 
   const handleNewConversation = async () => {
     try {
-      const newConv = await createConversation(token);
+      const newConv = await createConversation();
       setConversations([newConv, ...conversations]);
       setCurrentConversationId(newConv.id);
       setMessages([]);
@@ -91,7 +87,7 @@ export default function ChatInterface({ token }: ChatInterfaceProps) {
 
     try {
       setDeletingConversationId(conversationId);
-      await deleteConversation(conversationId, token);
+      await deleteConversation(conversationId);
       setConversations(conversations.filter(c => c.id !== conversationId));
 
       if (currentConversationId === conversationId) {
@@ -122,13 +118,10 @@ export default function ChatInterface({ token }: ChatInterfaceProps) {
     setMessages(prev => [...prev, newUserMessage]);
 
     try {
-      const response = await sendChatMessage(
-        {
-          message: userMessage,
-          conversation_id: currentConversationId || undefined,
-        },
-        token
-      );
+      const response = await sendChatMessage({
+        message: userMessage,
+        conversation_id: currentConversationId || undefined,
+      });
 
       // Update conversation ID if this was a new conversation
       if (!currentConversationId) {

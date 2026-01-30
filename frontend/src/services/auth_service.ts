@@ -126,3 +126,18 @@ export const login = async (email: string, password: string) => {
     }
   }
 };
+
+export const logout = async () => {
+  try {
+    const url = '/api/logout';
+    await authClient.post(url);
+    // Clear any client-side state if needed
+    if (typeof window !== 'undefined') {
+      // Clear localStorage items that might exist
+      localStorage.removeItem('hasSeenWelcomeModal');
+    }
+  } catch (error: any) {
+    // Even if logout fails on backend, we should still redirect to login
+    console.error('Logout error:', error);
+  }
+};

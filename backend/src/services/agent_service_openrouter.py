@@ -92,31 +92,29 @@ def run_agent(user_id: int, message: str, conversation_history: List[Dict[str, s
         return "I'm sorry, but I'm currently unable to process your request. The AI service is not properly configured. Please contact support."
 
     try:
-        # Initialize MCP tools with user context
-        mcp_tools = MCPTools(user_id=user_id)
-
         # Define tool functions that will be called by the AI
+        # MCPTools uses static methods, so we call them directly with user_id
         def add_task(title: str, description: str = "", priority: str = "medium",
                     category: str = None, tags: List[str] = None) -> Dict[str, Any]:
             """Add a new task for the user"""
-            return mcp_tools.add_task(title, description, priority, category, tags)
+            return MCPTools.add_task(user_id, title, description, priority, category, tags)
 
         def list_tasks(status: str = None) -> Dict[str, Any]:
             """List all tasks, optionally filtered by status (completed/pending)"""
-            return mcp_tools.list_tasks(status)
+            return MCPTools.list_tasks(user_id, status)
 
         def complete_task(task_id: int) -> Dict[str, Any]:
             """Mark a task as completed"""
-            return mcp_tools.complete_task(task_id)
+            return MCPTools.complete_task(user_id, task_id)
 
         def delete_task(task_id: int) -> Dict[str, Any]:
             """Delete a task"""
-            return mcp_tools.delete_task(task_id)
+            return MCPTools.delete_task(user_id, task_id)
 
         def update_task(task_id: int, title: str = None, priority: str = None,
                        category: str = None, tags: List[str] = None) -> Dict[str, Any]:
             """Update task details"""
-            return mcp_tools.update_task(task_id, title, priority, category, tags)
+            return MCPTools.update_task(user_id, task_id, title, priority, category, tags)
 
         # Define tools for OpenRouter using OpenAI function calling format
         tools = [

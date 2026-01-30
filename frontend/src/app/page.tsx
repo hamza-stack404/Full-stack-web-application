@@ -7,12 +7,9 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      router.push('/tasks');
-    } else {
-      router.push('/signup');
-    }
+    // Redirect to tasks page by default
+    // If user is not authenticated (no cookies), tasks page will redirect to login
+    router.push('/tasks');
   }, [router]);
 
   return null;

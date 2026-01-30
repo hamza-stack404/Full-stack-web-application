@@ -1,7 +1,24 @@
 // Task T017: Chat API client for Phase III AI Chatbot
 // Handles communication with chat endpoints
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+
+// Helper function to get CSRF token from cookie
+const getCsrfToken = (): string | null => {
+  if (typeof document === 'undefined') return null;
+
+  const name = 'csrf_token=';
+  const decodedCookie = decodeURIComponent(document.cookie);
+  const cookieArray = decodedCookie.split(';');
+
+  for (let cookie of cookieArray) {
+    cookie = cookie.trim();
+    if (cookie.indexOf(name) === 0) {
+      return cookie.substring(name.length);
+    }
+  }
+  return null;
+};
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -31,15 +48,21 @@ export interface SendMessageResponse {
  * Send a chat message and get AI response
  */
 export async function sendChatMessage(
-  request: SendMessageRequest,
-  token: string
+  request: SendMessageRequest
 ): Promise<SendMessageResponse> {
+  const csrfToken = getCsrfToken();
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+
+  if (csrfToken) {
+    headers['X-CSRF-Token'] = csrfToken;
+  }
+
   const response = await fetch(`${API_BASE_URL}/api/chat/send`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
+    headers,
+    credentials: 'include', // Include cookies
     body: JSON.stringify(request),
   });
 
@@ -54,12 +77,10 @@ export async function sendChatMessage(
 /**
  * Get all conversations for the current user
  */
-export async function getConversations(token: string): Promise<Conversation[]> {
+export async function getConversations(): Promise<Conversation[]> {
   const response = await fetch(`${API_BASE_URL}/api/chat/conversations`, {
     method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
+    credentials: 'include', // Include cookies
   });
 
   if (!response.ok) {
@@ -74,16 +95,13 @@ export async function getConversations(token: string): Promise<Conversation[]> {
  * Get all messages for a specific conversation
  */
 export async function getConversationMessages(
-  conversationId: number,
-  token: string
+  conversationId: number
 ): Promise<ChatMessage[]> {
   const response = await fetch(
     `${API_BASE_URL}/api/chat/conversations/${conversationId}/messages`,
     {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
+      credentials: 'include', // Include cookies
     }
   );
 
@@ -98,12 +116,18 @@ export async function getConversationMessages(
 /**
  * Create a new conversation
  */
-export async function createConversation(token: string): Promise<Conversation> {
+export async function createConversation(): Promise<Conversation> {
+  const csrfToken = getCsrfToken();
+  const headers: HeadersInit = {};
+
+  if (csrfToken) {
+    headers['X-CSRF-Token'] = csrfToken;
+  }
+
   const response = await fetch(`${API_BASE_URL}/api/chat/conversations`, {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
+    headers,
+    credentials: 'include', // Include cookies
   });
 
   if (!response.ok) {
@@ -118,16 +142,21 @@ export async function createConversation(token: string): Promise<Conversation> {
  * Delete a conversation
  */
 export async function deleteConversation(
-  conversationId: number,
-  token: string
+  conversationId: number
 ): Promise<void> {
+  const csrfToken = getCsrfToken();
+  const headers: HeadersInit = {};
+
+  if (csrfToken) {
+    headers['X-CSRF-Token'] = csrfToken;
+  }
+
   const response = await fetch(
     `${API_BASE_URL}/api/chat/conversations/${conversationId}`,
     {
       method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
+      headers,
+      credentials: 'include', // Include cookies
     }
   );
 

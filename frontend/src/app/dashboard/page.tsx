@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { getTasks } from '../../services/task_service';
+import { logout } from '../../services/auth_service';
 import { useError } from '../../providers/ErrorProvider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
@@ -44,18 +45,19 @@ export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-
     const fetchTasks = async () => {
       try {
         const response = await getTasks();
         setTasks(response.data);
       } catch (err: unknown) {
         const apiError = err as ApiError;
+
+        // If unauthorized (401/403), redirect to login
+        if (apiError?.response?.status === 401 || apiError?.response?.status === 403) {
+          router.push('/login');
+          return;
+        }
+
         setError(apiError?.response?.data?.message || 'Failed to fetch tasks');
         console.error(err);
       } finally {
@@ -71,8 +73,8 @@ export default function Dashboard() {
     console.log('Adding new task:', newTask);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
+  const handleLogout = async () => {
+    await logout();
     router.push('/login');
   };
 
