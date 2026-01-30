@@ -327,4 +327,28 @@ def run_agent(user_id: int, message: str, conversation_history: Optional[List[Di
 
     except Exception as e:
         logger.error(f"Error running agent: {str(e)}", exc_info=True)
-        return f"I'm sorry, I encountered an error while processing your request. Please try again later."
+
+        # Check for quota limit errors (429 RESOURCE_EXHAUSTED)
+        error_str = str(e)
+        if "429" in error_str and "RESOURCE_EXHAUSTED" in error_str:
+            return (
+                "⚠️ I've reached my daily API quota limit. "
+                "The free tier allows 20 requests per day. "
+                "Please try again tomorrow, or contact your administrator to upgrade the API plan. "
+                "Learn more at: https://ai.google.dev/gemini-api/docs/rate-limits"
+            )
+
+        # Check for authentication errors
+        if "403" in error_str and "PERMISSION_DENIED" in error_str:
+            if "leaked" in error_str.lower():
+                return (
+                    "🔒 The API key has been reported as leaked and blocked for security. "
+                    "Please contact your administrator to configure a new API key."
+                )
+            return (
+                "🔒 Authentication failed. The API key may be invalid or expired. "
+                "Please contact your administrator to check the API configuration."
+            )
+
+        # Generic error message for other errors
+        return "I'm sorry, I encountered an error while processing your request. Please try again later."

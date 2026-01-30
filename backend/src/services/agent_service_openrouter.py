@@ -308,4 +308,29 @@ def run_agent(user_id: int, message: str, conversation_history: List[Dict[str, s
 
     except Exception as e:
         logger.error(f"Error in agent execution: {str(e)}", exc_info=True)
+
+        # Check for quota limit errors (429 or rate limit)
+        error_str = str(e)
+        if "429" in error_str or "rate limit" in error_str.lower() or "quota" in error_str.lower():
+            return (
+                "⚠️ I've reached my daily API quota limit. "
+                "The free tier has limited requests per day. "
+                "Please try again later, or contact your administrator to upgrade the API plan."
+            )
+
+        # Check for authentication errors (401, 403)
+        if "401" in error_str or "403" in error_str or "unauthorized" in error_str.lower():
+            return (
+                "🔒 Authentication failed. The API key may be invalid or expired. "
+                "Please contact your administrator to check the API configuration."
+            )
+
+        # Check for model not found errors (404)
+        if "404" in error_str and "model" in error_str.lower():
+            return (
+                "⚠️ The AI model is not available. "
+                "Please contact your administrator to configure a valid model."
+            )
+
+        # Generic error message for other errors
         return "I apologize, but I encountered an error while processing your request. Please try again or contact support if the issue persists."

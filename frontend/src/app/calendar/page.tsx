@@ -34,6 +34,7 @@ interface TaskItem {
 
 interface ApiError {
   response?: {
+    status?: number;
     data?: {
       message?: string;
     };

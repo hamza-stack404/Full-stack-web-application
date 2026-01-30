@@ -138,10 +138,10 @@ export default function ChatInterface() {
     } catch (error) {
       console.error('Failed to send message:', error);
 
-      // Add error message
+      // Add error message with better context
       const errorMessage: ChatMessage = {
         role: 'assistant',
-        content: 'Sorry, I encountered an error processing your request. Please try again.',
+        content: '❌ Sorry, I encountered an error processing your request. Please check your connection and try again.',
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
