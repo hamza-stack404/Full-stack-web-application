@@ -9,14 +9,14 @@
 ## Exposed Keys
 
 ### Key 1 (Historical)
-- **Key**: `AIzaSyB1mwUX2pXv83teK8GP_6U_Lpx2K3HScvc`
+- **Key**: `[REDACTED]`
 - **Exposure**: Committed to git history in SETUP_API_KEY.md
 - **Date**: January 15, 2026
 - **Removed**: January 20, 2026 (commit feb5f0a)
 - **Status**: Already blocked by Google
 
 ### Key 2 (Current - Just Exposed)
-- **Key**: `AIzaSyC_xnBLuNqatSy6bA1u_aA6qwhoNDxtk1I`
+- **Key**: `[REDACTED]`
 - **Exposure**: Accidentally read during security audit
 - **Date**: January 23, 2026
 - **Status**: MUST BE REVOKED IMMEDIATELY

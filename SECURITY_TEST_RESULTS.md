@@ -246,8 +246,8 @@ git check-ignore backend/.env
 
 ### Pending ⚠️
 - [ ] **Revoke exposed API keys** (USER ACTION REQUIRED)
-  - Key #1: `AIzaSyBSAOREv_t4BOQmxrnba9JKf062LK2rMe8`
-  - Key #2: `AIzaSyB_Zk23s5BYaKHjVw-ybsp9W9LA7asjDnM`
+  - Key #1: `[REDACTED]`
+  - Key #2: `[REDACTED]`
 - [ ] **Generate new Gemini API key**
 - [ ] **Update .env with new key**
 - [ ] **Test frontend integration** with security features
