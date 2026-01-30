@@ -15,8 +15,8 @@ This report documents the comprehensive security remediation performed on the To
 
 ### **Critical Issue Found**
 Two Gemini API keys were hardcoded in 6 files across the repository:
-- Key #1: `AIzaSyBSAOREv_t4BOQmxrnba9JKf062LK2rMe8` (5 locations)
-- Key #2: `AIzaSyB_Zk23s5BYaKHjVw-ybsp9W9LA7asjDnM` (2 locations)
+- Key #1: `[REDACTED]` (5 locations)
+- Key #2: `[REDACTED]` (2 locations)
 
 ### **Actions Taken**
 1. ✅ Deleted `backend/.env.backup` containing exposed keys

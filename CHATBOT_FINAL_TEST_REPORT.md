@@ -70,8 +70,8 @@ load_dotenv(override=True)
 
 **Fix Applied:**
 ```env
-GEMINI_API_KEY=AIzaSyCaUvRUU6CCtvMVPkmST2oK2RLuhOIIAAU
-GOOGLE_API_KEY=AIzaSyCaUvRUU6CCtvMVPkmST2oK2RLuhOIIAAU
+GEMINI_API_KEY=[REDACTED]
+GOOGLE_API_KEY=[REDACTED]
 ```
 
 **Status:** ✅ Fixed and verified

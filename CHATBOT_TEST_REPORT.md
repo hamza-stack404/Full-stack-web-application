@@ -171,7 +171,7 @@ Multiple OpenRouter models were tested but all returned 404 errors:
 ### Immediate Actions Required 🔴
 
 1. **Get New Gemini API Key**
-   - Current key: `AIzaSyBSAOREv_t4BOQmxrnba9JKf062LK2rMe8` (BLOCKED)
+   - Current key: `[REDACTED - BLOCKED]`
    - Get new key from: https://aistudio.google.com/app/apikey
    - Update in `.env` file: `GEMINI_API_KEY=<new-key>`
 
