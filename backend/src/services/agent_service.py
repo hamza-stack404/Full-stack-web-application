@@ -95,6 +95,8 @@ def run_agent(user_id: int, message: str, conversation_history: Optional[List[Di
     Returns:
         Assistant's response as a string
     """
+    global client
+
     # Check if Gemini client is initialized
     if client is None:
         logger.error("Gemini client not initialized - API key may be missing or invalid")
@@ -348,7 +350,6 @@ def run_agent(user_id: int, message: str, conversation_history: Optional[List[Di
                 if rotation_success:
                     # Reinitialize client with new key
                     try:
-                        global client
                         new_key = rotation_service.get_current_key()
                         client = genai.Client(api_key=new_key)
                         logger.info("Successfully rotated to new API key, retrying request")

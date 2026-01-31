@@ -48,11 +48,11 @@ python setup_key_rotation.py
 
 **Example interaction:**
 ```
-Enter API Key #1 (required): AIzaSyCaUvRUU6CCtvMVPkmST2oK2RLuhOIIAAU
-✅ Key #1 added: AIza...AAU
+Enter API Key #1 (required): AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+✅ Key #1 added: AIza...XXX
 
-Enter API Key #2 (optional, press Enter to finish): AIzaSyB_Zk23s5BYaKHjVw-ybsp9W9LA7asjDnM
-✅ Key #2 added: AIza...DnM
+Enter API Key #2 (optional, press Enter to finish): AIzaSyYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+✅ Key #2 added: AIza...YYY
 
 Enter API Key #3 (optional, press Enter to finish): [Press Enter]
 
@@ -193,13 +193,13 @@ Response: "⚠️ All API keys have reached their daily quota limits.
 Edit `backend/.env`:
 ```env
 # Multiple keys with automatic rotation
-GEMINI_API_KEYS=AIzaSyCaUvRUU6CCtvMVPkmST2oK2RLuhOIIAAU,AIzaSyB_Zk23s5BYaKHjVw-ybsp9W9LA7asjDnM
+GEMINI_API_KEYS=your-key-1-here,your-key-2-here
 ```
 
 ### Alternative: Single Key (No Rotation)
 ```env
 # Single key (fallback mode)
-GEMINI_API_KEY=AIzaSyCaUvRUU6CCtvMVPkmST2oK2RLuhOIIAAU
+GEMINI_API_KEY=your-api-key-here
 ```
 
 ---
