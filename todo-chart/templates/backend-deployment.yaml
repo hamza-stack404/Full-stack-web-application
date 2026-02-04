@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-backend
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "todo.backend.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.backend.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "todo.backend.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        {{- include "todo.backend.labels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: backend
+        image: "{{ .Values.backend.image.name }}:{{ .Values.backend.image.tag }}"
+        imagePullPolicy: Never
+        ports:
+        - containerPort: {{ .Values.backend.port }}
+          protocol: TCP
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: todo-secrets
+              key: DATABASE_URL
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: todo-secrets
+              key: OPENAI_API_KEY
+        - name: BETTER_AUTH_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: todo-secrets
+              key: BETTER_AUTH_SECRET
+        resources:
+          limits:
+            cpu: {{ .Values.backend.resources.limits.cpu }}
+            memory: {{ .Values.backend.resources.limits.memory }}
+          requests:
+            cpu: {{ .Values.backend.resources.requests.cpu }}
+            memory: {{ .Values.backend.resources.requests.memory }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.backend.health.path }}
+            port: {{ .Values.backend.port }}
+          initialDelaySeconds: {{ .Values.backend.health.initialDelaySeconds }}
+          periodSeconds: {{ .Values.backend.health.periodSeconds }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.backend.health.path }}
+            port: {{ .Values.backend.port }}
+          initialDelaySeconds: {{ .Values.backend.health.initialDelaySeconds }}
+          periodSeconds: {{ .Values.backend.health.periodSeconds }}

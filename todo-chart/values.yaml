@@ -1,0 +1,51 @@
+namespace: todo-app
+
+frontend:
+  replicaCount: 2
+  image:
+    name: todo-frontend
+    tag: latest
+  port: 3000
+  service:
+    type: NodePort
+    port: 80
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  health:
+    path: /health
+    initialDelaySeconds: 10
+    periodSeconds: 30
+
+backend:
+  replicaCount: 2
+  image:
+    name: todo-backend
+    tag: latest
+  port: 8000
+  service:
+    type: ClusterIP
+    port: 8000
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  health:
+    path: /health
+    initialDelaySeconds: 10
+    periodSeconds: 30
+
+secrets:
+  databaseUrl: REPLACE_WITH_BASE64_NEON_URL
+  openaiApiKey: REPLACE_WITH_BASE64_OPENAI_KEY
+  betterAuthSecret: REPLACE_WITH_BASE64_AUTH_SECRET
+
+config:
+  backendUrl: http://todo-backend:8000
