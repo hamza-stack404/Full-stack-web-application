@@ -412,6 +412,88 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [ ] Integration with calendar apps
 - [ ] Offline support (PWA)
 
+## Phase IV: Local Kubernetes Deployment
+
+### Prerequisites
+- Docker Desktop 4.53+ (with Gordon enabled)
+- Minikube installed
+- Helm 3 installed
+- kubectl installed
+- kubectl-ai installed
+- kagent installed
+
+### Step 1: Enable Gordon
+```bash
+docker ai "What can you do?"
+```
+
+### Step 2: Build Docker Images
+```bash
+docker ai "Build a production image for my Next.js app in ./frontend and tag it todo-frontend:latest"
+docker ai "Build a production image for my FastAPI app in ./backend and tag it todo-backend:latest"
+```
+
+### Step 3: Start Minikube
+```bash
+minikube start
+minikube addons enable ingress
+```
+
+### Step 4: Load Images into Minikube
+```bash
+minikube image load todo-frontend:latest
+minikube image load todo-backend:latest
+```
+
+### Step 5: Update Secrets in values.yaml
+Generate base64 values for your secrets:
+```bash
+echo -n "your-neon-database-url" | base64
+echo -n "your-openai-api-key" | base64
+echo -n "your-better-auth-secret" | base64
+```
+Replace REPLACE_WITH_BASE64_* in todo-chart/values.yaml with generated values.
+
+### Step 6: Deploy with Helm
+```bash
+helm install todo ./todo-chart
+```
+
+### Step 7: Verify Deployment
+```bash
+kubectl-ai "show me all pods in todo-app namespace"
+kubectl-ai "show me all services in todo-app namespace"
+kagent "analyze the health of todo-app namespace"
+```
+
+### Step 8: Access the App
+```bash
+minikube service todo-frontend -n todo-app --url
+```
+
+### Upgrade Deployment
+```bash
+helm upgrade todo ./todo-chart
+```
+
+### Uninstall Deployment
+```bash
+helm uninstall todo
+```
+
+### Troubleshooting
+```bash
+# Check pod logs
+kubectl logs -n todo-app -l app=todo-frontend
+kubectl logs -n todo-app -l app=todo-backend
+
+# Describe pod (shows errors)
+kubectl-ai "why are pods failing in todo-app namespace"
+
+# Check events
+kubectl get events -n todo-app
+```
+
 ---
 
 **Built with ❤️ using modern web technologies**

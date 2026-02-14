@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-frontend
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "todo.frontend.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.frontend.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "todo.frontend.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        {{- include "todo.frontend.labels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: frontend
+        image: "{{ .Values.frontend.image.name }}:{{ .Values.frontend.image.tag }}"
+        imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.frontend.port }}
+          protocol: TCP
+        env:
+        - name: NEXT_PUBLIC_API_URL
+          valueFrom:
+            configMapKeyRef:
+              name: todo-config
+              key: BACKEND_URL
+        resources:
+          limits:
+            cpu: {{ .Values.frontend.resources.limits.cpu }}
+            memory: {{ .Values.frontend.resources.limits.memory }}
+          requests:
+            cpu: {{ .Values.frontend.resources.requests.cpu }}
+            memory: {{ .Values.frontend.resources.requests.memory }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.frontend.health.path }}
+            port: {{ .Values.frontend.port }}
+          initialDelaySeconds: {{ .Values.frontend.health.initialDelaySeconds }}
+          periodSeconds: {{ .Values.frontend.health.periodSeconds }}
+          timeoutSeconds: {{ .Values.frontend.health.timeoutSeconds }}
+          failureThreshold: {{ .Values.frontend.health.failureThreshold }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.frontend.health.path }}
+            port: {{ .Values.frontend.port }}
+          initialDelaySeconds: {{ .Values.frontend.health.initialDelaySeconds }}
+          periodSeconds: {{ .Values.frontend.health.periodSeconds }}
+          timeoutSeconds: {{ .Values.frontend.health.timeoutSeconds }}
+          failureThreshold: {{ .Values.frontend.health.failureThreshold }}
