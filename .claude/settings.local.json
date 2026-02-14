@@ -107,7 +107,12 @@
       "Bash($env:PYTHONIOENCODING=\"utf-8\")",
       "Bash(python test_keys.py)",
       "Bash(git reset:*)",
-      "Bash(git add SECURITY_INCIDENT_RESPONSE_2026-01-31.md)"
+      "Bash(git add SECURITY_INCIDENT_RESPONSE_2026-01-31.md)",
+      "Bash(git pull:*)",
+      "Bash(git merge:*)",
+      "Bash(git restore .claude/settings.local.json)",
+      "Bash(git add .claude/settings.local.json)",
+      "Bash(git commit -m \"chore: Update local Claude settings\")"
     ]
   }
 }
