@@ -20,7 +20,7 @@ spec:
       containers:
       - name: frontend
         image: "{{ .Values.frontend.image.name }}:{{ .Values.frontend.image.tag }}"
-        imagePullPolicy: Never
+        imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
         ports:
         - containerPort: {{ .Values.frontend.port }}
           protocol: TCP
@@ -43,9 +43,13 @@ spec:
             port: {{ .Values.frontend.port }}
           initialDelaySeconds: {{ .Values.frontend.health.initialDelaySeconds }}
           periodSeconds: {{ .Values.frontend.health.periodSeconds }}
+          timeoutSeconds: {{ .Values.frontend.health.timeoutSeconds }}
+          failureThreshold: {{ .Values.frontend.health.failureThreshold }}
         readinessProbe:
           httpGet:
             path: {{ .Values.frontend.health.path }}
             port: {{ .Values.frontend.port }}
           initialDelaySeconds: {{ .Values.frontend.health.initialDelaySeconds }}
           periodSeconds: {{ .Values.frontend.health.periodSeconds }}
+          timeoutSeconds: {{ .Values.frontend.health.timeoutSeconds }}
+          failureThreshold: {{ .Values.frontend.health.failureThreshold }}

@@ -5,6 +5,7 @@ frontend:
   image:
     name: todo-frontend
     tag: latest
+    pullPolicy: IfNotPresent  # Use 'Always' for production with registry
   port: 3000
   service:
     type: NodePort
@@ -17,15 +18,18 @@ frontend:
       cpu: 250m
       memory: 256Mi
   health:
-    path: /health
-    initialDelaySeconds: 10
+    path: /
+    initialDelaySeconds: 30
     periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 5
 
 backend:
   replicaCount: 2
   image:
     name: todo-backend
     tag: latest
+    pullPolicy: IfNotPresent  # Use 'Always' for production with registry
   port: 8000
   service:
     type: ClusterIP
@@ -39,13 +43,36 @@ backend:
       memory: 512Mi
   health:
     path: /health
-    initialDelaySeconds: 10
+    initialDelaySeconds: 30
     periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 5
 
 secrets:
-  databaseUrl: REPLACE_WITH_BASE64_NEON_URL
-  openaiApiKey: REPLACE_WITH_BASE64_OPENAI_KEY
-  betterAuthSecret: REPLACE_WITH_BASE64_AUTH_SECRET
+  # SECURITY: Do not commit actual secrets here!
+  # These are placeholders. Set real values using one of these methods:
+  # 1. Helm install: --set secrets.databaseUrl="your-value"
+  # 2. Create a secrets.yaml file (add to .gitignore) and use: -f secrets.yaml
+  # 3. Use Kubernetes secrets: kubectl create secret generic todo-secrets
+  # 4. Use external secret management: Sealed Secrets, External Secrets Operator, or Vault
+  databaseUrl: "cG9zdGdyZXNxbDovL25lb25kYl9vd25lcjpucGdfa2ZZWno2N3NhQlB1QGVwLXByb3VkLXdpbmQtYWhmanB4NHktcG9vbGVyLmMtMy51cy1lYXN0LTEuYXdzLm5lb24udGVjaC9uZW9uZGI/c3NsbW9kZT1yZXF1aXJlJmNoYW5uZWxfYmluZGluZz1yZXF1aXJl"
+  geminiApiKeys: "QUl6YVN5Q2FVdlJVVTZDQ3R2TVZQa21TVDJvSzJSTHVoT0lJQUFVLEFJemFTeUM3THM5MlNsczlrRTV1aHo4Y0NfdHJwaDB5YXY0aWdEZw=="
+  betterAuthSecret: "YS12ZXJ5LXNlY3JldC1rZXktdGhhdC1zaG91bGQtYmUtY2hhbmdlZC1pbi1wcm9kdWN0aW9u"
 
 config:
   backendUrl: http://todo-backend:8000
+
+# Ingress configuration (optional - for production deployments)
+ingress:
+  enabled: false  # Set to true to enable Ingress
+  className: nginx  # Use 'nginx', 'traefik', or your ingress controller
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod  # For automatic TLS
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  hosts:
+    - host: todo-app.example.com  # Replace with your domain
+  tls:
+    - secretName: todo-app-tls
+      hosts:
+        - todo-app.example.com  # Replace with your domain

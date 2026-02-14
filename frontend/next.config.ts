@@ -1,19 +1,24 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // CRITICAL: Required for Docker deployment
+  output: 'standalone',
+  
   async rewrites() {
     // Only use rewrites in development
     if (process.env.NODE_ENV === 'development') {
       return [
         {
           source: '/api/:path*',
-          destination: 'http://localhost:8001/api/:path*',
+          destination: 'http://localhost:8000/api/:path*',
         },
       ]
     }
 
+    // In production, no rewrites (handled by Kubernetes service)
     return [];
   },
+  
   async headers() {
     return [
       {

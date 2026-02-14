@@ -107,3 +107,14 @@ tmpclaude-*
 # Package installation errors and temp files
 =*
 nul
+
+# Kubernetes secrets (never commit actual secrets!)
+todo-chart/secrets.yaml
+secrets.yaml
+sealed-secret.yaml
+
+# Temporary files
+temp.txt
+_ul
+backend/_ul
+frontend/_ul

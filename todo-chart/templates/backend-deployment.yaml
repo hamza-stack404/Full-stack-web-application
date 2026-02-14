@@ -20,7 +20,7 @@ spec:
       containers:
       - name: backend
         image: "{{ .Values.backend.image.name }}:{{ .Values.backend.image.tag }}"
-        imagePullPolicy: Never
+        imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
         ports:
         - containerPort: {{ .Values.backend.port }}
           protocol: TCP
@@ -30,11 +30,11 @@ spec:
             secretKeyRef:
               name: todo-secrets
               key: DATABASE_URL
-        - name: OPENAI_API_KEY
+        - name: GEMINI_API_KEYS
           valueFrom:
             secretKeyRef:
               name: todo-secrets
-              key: OPENAI_API_KEY
+              key: GEMINI_API_KEYS
         - name: BETTER_AUTH_SECRET
           valueFrom:
             secretKeyRef:
@@ -53,9 +53,13 @@ spec:
             port: {{ .Values.backend.port }}
           initialDelaySeconds: {{ .Values.backend.health.initialDelaySeconds }}
           periodSeconds: {{ .Values.backend.health.periodSeconds }}
+          timeoutSeconds: {{ .Values.backend.health.timeoutSeconds }}
+          failureThreshold: {{ .Values.backend.health.failureThreshold }}
         readinessProbe:
           httpGet:
             path: {{ .Values.backend.health.path }}
             port: {{ .Values.backend.port }}
           initialDelaySeconds: {{ .Values.backend.health.initialDelaySeconds }}
           periodSeconds: {{ .Values.backend.health.periodSeconds }}
+          timeoutSeconds: {{ .Values.backend.health.timeoutSeconds }}
+          failureThreshold: {{ .Values.backend.health.failureThreshold }}
