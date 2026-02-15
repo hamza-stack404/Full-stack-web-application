@@ -246,6 +246,18 @@ try:
 except Exception as e:
     logger.error(f"Failed to import admin router: {str(e)}", exc_info=True)
 
+# Phase V: Jobs callback router for Dapr Jobs API
+try:
+    logger.info("Importing jobs router...")
+    from .routes import jobs
+    logger.info("Jobs router imported successfully")
+
+    # Register jobs API (no versioning needed for internal callbacks)
+    app.include_router(jobs.router, tags=["jobs"])
+    logger.info("Jobs router registered")
+except Exception as e:
+    logger.error(f"Failed to import jobs router: {str(e)}", exc_info=True)
+
 
 
 @app.exception_handler(HTTPException)

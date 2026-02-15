@@ -16,6 +16,11 @@ spec:
     metadata:
       labels:
         {{- include "todo.backend.labels" . | nindent 8 }}
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "backend-service"
+        dapr.io/app-port: "{{ .Values.backend.port }}"
+        dapr.io/log-level: "info"
     spec:
       containers:
       - name: backend

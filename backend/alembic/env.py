@@ -22,6 +22,9 @@ from src.models.task import Task
 # Phase III: AI Chatbot models (T008)
 from src.models.conversation import Conversation
 from src.models.message import Message
+# Phase V: Event sourcing and audit trail models
+from src.models.task_event import TaskEvent
+from src.models.audit_log import AuditLog
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

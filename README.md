@@ -1,6 +1,6 @@
 # Full Stack Todo Application
 
-A modern, production-ready full-stack todo application with AI-powered chatbot assistance, featuring Next.js 16 frontend and FastAPI backend with PostgreSQL database.
+A modern, production-ready full-stack todo application with AI-powered chatbot assistance and **event-driven architecture**, featuring Next.js 16 frontend, FastAPI backend, and real-time updates via WebSocket.
 
 [![CI/CD Pipeline](https://github.com/yourusername/todo-app/workflows/CI/CD%20Pipeline/badge.svg)](https://github.com/yourusername/todo-app/actions)
 [![codecov](https://codecov.io/gh/yourusername/todo-app/branch/main/graph/badge.svg)](https://codecov.io/gh/yourusername/todo-app)
@@ -11,7 +11,7 @@ A modern, production-ready full-stack todo application with AI-powered chatbot a
 - **Full Authentication**: Secure user signup/login with JWT tokens and Argon2 password hashing
 - **Task Management**: Complete CRUD operations with rich task properties
 - **Task Organization**: Categories, tags (up to 10 per task), priorities (low/medium/high)
-- **Recurring Tasks**: Daily, weekly, and monthly recurring task support
+- **Recurring Tasks**: Daily, weekly, and monthly recurring task support with auto-creation
 - **Subtasks**: Break down complex tasks into manageable subtasks
 - **Multiple Views**: List, Kanban board, and Calendar views
 - **Bulk Operations**: Efficiently manage multiple tasks at once
@@ -26,6 +26,16 @@ A modern, production-ready full-stack todo application with AI-powered chatbot a
 - **Pomodoro Timer**: Built-in productivity timer
 - **Keyboard Shortcuts**: Power-user friendly shortcuts
 
+### 🆕 Phase V: Event-Driven Architecture
+- **Real-Time Updates**: WebSocket-based live synchronization across all clients (<2s latency)
+- **Task Reminders**: Scheduled notifications before task due dates
+- **Auto-Recurring Tasks**: Automatic creation of next occurrence on completion
+- **Event Sourcing**: Complete audit trail of all task operations
+- **Microservices Architecture**: Scalable, distributed service design
+- **Message Queue**: Apache Kafka for reliable event streaming
+- **Service Mesh**: Dapr for service-to-service communication
+- **Browser Notifications**: Native push notifications for reminders
+
 ### Security & Performance
 - **Rate Limiting**: Protection against API abuse (100 req/min default)
 - **Security Headers**: HSTS, CSP, X-Frame-Options, XSS Protection
@@ -33,6 +43,7 @@ A modern, production-ready full-stack todo application with AI-powered chatbot a
 - **SQL Injection Protection**: SQLModel ORM with parameterized queries
 - **Health Monitoring**: Built-in health check endpoints
 - **Error Tracking**: Structured logging with sanitized error messages
+- **Immutable Audit Logs**: Complete event history for compliance
 
 ## 🛠 Tech Stack
 
@@ -44,35 +55,55 @@ A modern, production-ready full-stack todo application with AI-powered chatbot a
 - **Icons**: Lucide React
 - **State Management**: React Context API
 - **HTTP Client**: Axios
+- **WebSocket**: Native WebSocket API with auto-reconnect
 - **Testing**: Vitest + React Testing Library
 
 ### Backend
 - **Framework**: FastAPI
 - **Language**: Python 3.11+
-- **Database**: PostgreSQL 15+
+- **Database**: PostgreSQL 15+ (Neon)
 - **ORM**: SQLModel (SQLAlchemy + Pydantic)
 - **Authentication**: JWT with Argon2 password hashing
 - **Migrations**: Alembic
 - **AI Integration**: Google Gemini API
+- **Event Streaming**: Apache Kafka (Strimzi)
+- **Service Mesh**: Dapr
+- **State Store**: Redis
 - **Testing**: Pytest + pytest-asyncio
 
-### DevOps
+### Microservices (Phase V)
+- **Recurring Task Service**: Auto-creates next task occurrence
+- **Notification Service**: Sends reminders via WebSocket
+- **Audit Service**: Writes immutable audit logs
+- **WebSocket Service**: Manages real-time connections
+
+### DevOps & Infrastructure
 - **Containerization**: Docker + Docker Compose
+- **Orchestration**: Kubernetes (Minikube/OKE/GKE/AKS)
 - **CI/CD**: GitHub Actions
 - **Code Quality**: Black, isort, Flake8, Prettier, ESLint
 - **Pre-commit Hooks**: Automated code quality checks
 - **Security Scanning**: Bandit, Trivy
+- **Monitoring**: Prometheus + Grafana (optional)
+- **Tracing**: Jaeger (optional)
 
 ## 📋 Prerequisites
 
+### For Basic Development
 - **Python**: 3.11 or higher
 - **Node.js**: 20 or higher
-- **PostgreSQL**: 15 or higher
+- **PostgreSQL**: 15 or higher (or Neon account)
 - **Docker** (optional): For containerized development
+
+### For Phase V (Event-Driven Architecture)
+- **Kubernetes**: Minikube, Docker Desktop with K8s, or cloud cluster (OKE/GKE/AKS)
+- **kubectl**: Kubernetes CLI
+- **Helm**: 3.x or higher
+- **Docker**: For building images
 
 ## 🚀 Quick Start
 
-### Option 1: Docker Compose (Recommended)
+### Option 1: Docker Compose (Basic Features)
 
 ```bash
 # Clone the repository
@@ -84,7 +115,7 @@ cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 
 # Update backend/.env with your configuration
-# At minimum, set BETTER_AUTH_SECRET and GEMINI_API_KEY
+# At minimum, set BETTER_AUTH_SECRET and DATABASE_URL
 
 # Start all services
 docker-compose up
@@ -93,6 +124,30 @@ docker-compose up
 # Frontend: http://localhost:3000
 # Backend API: http://localhost:8000
 # API Docs: http://localhost:8000/docs
+```
+
+### Option 2: Kubernetes with Phase V (Full Features)
+
+**Quick Deploy to Minikube:**
+```bash
+# Make scripts executable
+chmod +x scripts/*.sh
+
+# Deploy everything (Kafka, Dapr, microservices)
+./scripts/deploy-minikube.sh
+
+# Verify deployment
+./scripts/verify-deployment.sh
+
+# Set up port forwarding
+kubectl port-forward svc/todo-frontend 3000:3000 -n todo-app &
+kubectl port-forward svc/todo-backend 8000:8000 -n todo-app &
+kubectl port-forward svc/websocket-service 8004:8004 -n todo-app &
+
+# Access at http://localhost:3000
+```
+
+**For detailed deployment instructions, see [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)**
 ```
 
 ### Option 2: Manual Setup

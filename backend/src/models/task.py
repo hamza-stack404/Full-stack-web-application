@@ -13,8 +13,11 @@ class Task(SQLModel, table=True):
     due_date: Optional[datetime] = Field(default=None)
     subtasks: Optional[list] = Field(default=None, sa_column=Column(JSON))
     is_recurring: bool = Field(default=False)
-    recurrence_pattern: Optional[str] = Field(default=None)  # "daily", "weekly", "monthly"
+    recurrence_pattern: Optional[dict] = Field(default=None, sa_column=Column(JSON))  # Phase V: Changed to dict for complex patterns
     recurrence_interval: Optional[int] = Field(default=1)  # Every N days/weeks/months
+    # Phase V: New fields for event-driven architecture
+    remind_before_minutes: int = Field(default=30)  # Minutes before due_date to send reminder
+    parent_task_id: Optional[int] = Field(default=None, foreign_key="task.id")  # Link to original recurring task
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC), sa_column=Column(DateTime(timezone=True), server_default=func.now()))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC), sa_column=Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now()))
     owner_id: int | None = Field(default=None, foreign_key="users.id", ondelete="CASCADE")

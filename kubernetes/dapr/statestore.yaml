@@ -1,0 +1,23 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: statestore
+  namespace: todo-app
+spec:
+  type: state.redis
+  version: v1
+  metadata:
+  - name: redisHost
+    value: "redis-master.todo-app.svc.cluster.local:6379"
+  - name: redisPassword
+    value: ""
+  - name: actorStateStore
+    value: "true"
+  - name: keyPrefix
+    value: "todo"
+scopes:
+- backend-service
+- recurring-task-service
+- notification-service
+- audit-service
+- websocket-service

@@ -10,7 +10,7 @@ import AddTaskForm from '@/src/components/AddTaskForm';
 import BulkActionsToolbar from '@/src/components/BulkActionsToolbar';
 import { useError } from '@/src/providers/ErrorProvider';
 import ThemeToggle from '@/src/components/ThemeToggle';
-import { LogOut, Menu, Plus, CheckSquare } from 'lucide-react';
+import { LogOut, Menu, Plus, CheckSquare, Wifi, WifiOff } from 'lucide-react';
 import { Tooltip } from '@/src/components/ui/tooltip';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -26,6 +26,8 @@ import { useKeyboardShortcuts } from '@/src/hooks/useKeyboardShortcuts';
 import { useKeyboardNavigation } from '@/src/hooks/useKeyboardNavigation';
 import KeyboardShortcutsModal from '@/src/components/KeyboardShortcutsModal';
 import { toast } from 'sonner';
+// Phase V: WebSocket for real-time updates
+import { TaskWebSocket, requestNotificationPermission as requestWSNotificationPermission, TaskUpdate } from '@/lib/websocket';
 
 interface Subtask {
   id: number;
@@ -72,6 +74,10 @@ export default function Tasks() {
   const [selectionMode, setSelectionMode] = useState(false);
   const addTaskFormRef = useRef<HTMLDivElement>(null);
   const addTaskInputRef = useRef<HTMLInputElement>(null);
+
+  // Phase V: WebSocket state
+  const [wsConnected, setWsConnected] = useState(false);
+  const wsRef = useRef<TaskWebSocket | null>(null);
 
   const filteredAndSortedTasks = useMemo(() => {
     let filtered = tasks;
@@ -136,6 +142,105 @@ export default function Tasks() {
 
   useEffect(() => {
     requestNotificationPermission();
+    // Phase V: Request WebSocket notification permission
+    requestWSNotificationPermission();
+  }, []);
+
+  // Phase V: WebSocket connection management
+  useEffect(() => {
+    // Get user ID from localStorage or session
+    const userStr = localStorage.getItem('user');
+    if (!userStr) return;
+
+    try {
+      const user = JSON.parse(userStr);
+      const userId = user.id;
+
+      // Handle WebSocket updates
+      const handleUpdate = (update: TaskUpdate) => {
+        console.log('WebSocket update received:', update);
+
+        if (update.type === 'connection') {
+          setWsConnected(update.status === 'connected');
+          if (update.status === 'connected') {
+            toast.success('Real-time updates connected');
+          }
+          return;
+        }
+
+        if (update.type === 'task_update' && update.task) {
+          const action = update.action;
+          const task = update.task;
+
+          setTasks(prevTasks => {
+            switch (action) {
+              case 'created':
+                // Add new task if not already present
+                if (!prevTasks.find(t => t.id === task.id)) {
+                  return [...prevTasks, { ...task, subtasks: task.subtasks || [] }];
+                }
+                return prevTasks;
+
+              case 'updated':
+                // Update existing task
+                return prevTasks.map(t =>
+                  t.id === task.id ? { ...task, subtasks: task.subtasks || [] } : t
+                );
+
+              case 'completed':
+                // Update task completion status
+                return prevTasks.map(t =>
+                  t.id === task.id ? { ...t, is_completed: true } : t
+                );
+
+              case 'deleted':
+                // Remove deleted task
+                return prevTasks.filter(t => t.id !== task.id);
+
+              default:
+                return prevTasks;
+            }
+          });
+
+          // Show toast notification
+          switch (action) {
+            case 'created':
+              toast.info(`Task created: ${task.title}`);
+              break;
+            case 'updated':
+              toast.info(`Task updated: ${task.title}`);
+              break;
+            case 'completed':
+              toast.success(`Task completed: ${task.title}`);
+              break;
+            case 'deleted':
+              toast.info(`Task deleted`);
+              break;
+          }
+        }
+
+        if (update.type === 'task_reminder') {
+          toast.info(update.message || 'Task reminder', {
+            duration: 5000,
+          });
+        }
+      };
+
+      // Initialize WebSocket
+      const ws = new TaskWebSocket(userId, handleUpdate);
+      ws.connect();
+      wsRef.current = ws;
+      setWsConnected(ws.isConnected());
+
+      // Cleanup on unmount
+      return () => {
+        ws.disconnect();
+        wsRef.current = null;
+        setWsConnected(false);
+      };
+    } catch (error) {
+      console.error('Failed to initialize WebSocket:', error);
+    }
   }, []);
 
   useEffect(() => {
@@ -477,6 +582,18 @@ export default function Tasks() {
               <GlobalSearchModal />
               <Tooltip text="Keyboard shortcuts">
                 <KeyboardShortcutsModal />
+              </Tooltip>
+              <Tooltip text={wsConnected ? "Real-time updates connected" : "Real-time updates disconnected"}>
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800">
+                  {wsConnected ? (
+                    <Wifi className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <WifiOff className="h-4 w-4 text-red-500" />
+                  )}
+                  <span className="text-xs font-medium hidden sm:inline">
+                    {wsConnected ? 'Live' : 'Offline'}
+                  </span>
+                </div>
               </Tooltip>
               <Tooltip text="Toggle theme">
                 <ThemeToggle />

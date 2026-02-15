@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Checkbox } from '@/components/ui/checkbox';
 
-const AddTaskForm = forwardRef<any, { onAdd: (task: { title: string; is_completed: boolean; priority: string, category?: string, tags?: string[], due_date?: string, is_recurring?: boolean, recurrence_pattern?: string, recurrence_interval?: number }) => Promise<void> }>(({ onAdd }, ref) => {
+const AddTaskForm = forwardRef<any, { onAdd: (task: { title: string; is_completed: boolean; priority: string, category?: string, tags?: string[], due_date?: string, is_recurring?: boolean, recurrence_pattern?: { type: string; interval: number }, remind_before_minutes?: number }) => Promise<void> }>(({ onAdd }, ref) => {
   const [title, setTitle] = useState('');
   const [priority, setPriority] = useState('medium');
   const [category, setCategory] = useState('none');
@@ -22,6 +22,7 @@ const AddTaskForm = forwardRef<any, { onAdd: (task: { title: string; is_complete
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurrencePattern, setRecurrencePattern] = useState('daily');
   const [recurrenceInterval, setRecurrenceInterval] = useState(1);
+  const [remindBeforeMinutes, setRemindBeforeMinutes] = useState(30);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useImperativeHandle(ref, () => ({
@@ -51,8 +52,8 @@ const AddTaskForm = forwardRef<any, { onAdd: (task: { title: string; is_complete
         tags: tags.length > 0 ? tags : undefined,
         due_date: dueDateStr,
         is_recurring: isRecurring,
-        recurrence_pattern: isRecurring ? recurrencePattern : undefined,
-        recurrence_interval: isRecurring ? recurrenceInterval : undefined
+        recurrence_pattern: isRecurring ? { type: recurrencePattern, interval: recurrenceInterval } : undefined,
+        remind_before_minutes: date ? remindBeforeMinutes : undefined
       });
       setTitle('');
       setCategory('none');
@@ -61,6 +62,7 @@ const AddTaskForm = forwardRef<any, { onAdd: (task: { title: string; is_complete
       setIsRecurring(false);
       setRecurrencePattern('daily');
       setRecurrenceInterval(1);
+      setRemindBeforeMinutes(30);
       toast.success("Task added successfully!");
     } catch (error) {
       toast.error("Failed to add task.");
@@ -140,6 +142,65 @@ const AddTaskForm = forwardRef<any, { onAdd: (task: { title: string; is_complete
         placeholder="Tags (comma-separated, e.g., urgent, work, personal)"
         className="input-field text-sm"
       />
+
+      {/* Phase V: Recurring Task Options */}
+      <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="recurring"
+            checked={isRecurring}
+            onCheckedChange={(checked) => setIsRecurring(checked as boolean)}
+          />
+          <label htmlFor="recurring" className="cursor-pointer flex items-center gap-1">
+            <Repeat className="h-4 w-4" />
+            Recurring
+          </label>
+        </div>
+
+        {isRecurring && (
+          <>
+            <Select value={recurrencePattern} onValueChange={setRecurrencePattern}>
+              <SelectTrigger className="w-[120px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="daily">Daily</SelectItem>
+                <SelectItem value="weekly">Weekly</SelectItem>
+                <SelectItem value="monthly">Monthly</SelectItem>
+                <SelectItem value="yearly">Yearly</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <div className="flex items-center gap-2">
+              <span>Every</span>
+              <Input
+                type="number"
+                min="1"
+                max="365"
+                value={recurrenceInterval}
+                onChange={(e) => setRecurrenceInterval(parseInt(e.target.value) || 1)}
+                className="w-16 text-center"
+              />
+              <span>{recurrencePattern === 'daily' ? 'day(s)' : recurrencePattern === 'weekly' ? 'week(s)' : recurrencePattern === 'monthly' ? 'month(s)' : 'year(s)'}</span>
+            </div>
+          </>
+        )}
+
+        {date && (
+          <div className="flex items-center gap-2 ml-auto">
+            <span>Remind</span>
+            <Input
+              type="number"
+              min="5"
+              max="1440"
+              value={remindBeforeMinutes}
+              onChange={(e) => setRemindBeforeMinutes(parseInt(e.target.value) || 30)}
+              className="w-16 text-center"
+            />
+            <span>min before</span>
+          </div>
+        )}
+      </div>
     </form>
   );
 });

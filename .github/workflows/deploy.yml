@@ -1,0 +1,187 @@
+name: CI/CD Pipeline - Phase V
+
+on:
+  push:
+    branches: [ main, 004-event-driven-cloud ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: docker.io
+  BACKEND_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/todo-backend
+  FRONTEND_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/todo-frontend
+  RECURRING_TASK_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/recurring-task-service
+  NOTIFICATION_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/notification-service
+  AUDIT_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/audit-service
+  WEBSOCKET_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/websocket-service
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-cov
+
+      - name: Run tests
+        run: |
+          cd backend
+          pytest --cov=src --cov-report=xml
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./backend/coverage.xml
+
+  test-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Run tests
+        run: |
+          cd frontend
+          npm test
+
+  build-and-push:
+    needs: [test-backend, test-frontend]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        run: |
+          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "date=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
+
+      - name: Build and push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ env.BACKEND_IMAGE }}:latest
+            ${{ env.BACKEND_IMAGE }}:${{ steps.meta.outputs.sha_short }}
+          cache-from: type=registry,ref=${{ env.BACKEND_IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.BACKEND_IMAGE }}:buildcache,mode=max
+
+      - name: Build and push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ env.FRONTEND_IMAGE }}:latest
+            ${{ env.FRONTEND_IMAGE }}:${{ steps.meta.outputs.sha_short }}
+          cache-from: type=registry,ref=${{ env.FRONTEND_IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.FRONTEND_IMAGE }}:buildcache,mode=max
+
+      - name: Build and push Recurring Task Service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/recurring-task
+          push: true
+          tags: |
+            ${{ env.RECURRING_TASK_IMAGE }}:latest
+            ${{ env.RECURRING_TASK_IMAGE }}:${{ steps.meta.outputs.sha_short }}
+
+      - name: Build and push Notification Service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/notification
+          push: true
+          tags: |
+            ${{ env.NOTIFICATION_IMAGE }}:latest
+            ${{ env.NOTIFICATION_IMAGE }}:${{ steps.meta.outputs.sha_short }}
+
+      - name: Build and push Audit Service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/audit
+          push: true
+          tags: |
+            ${{ env.AUDIT_IMAGE }}:latest
+            ${{ env.AUDIT_IMAGE }}:${{ steps.meta.outputs.sha_short }}
+
+      - name: Build and push WebSocket Service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/websocket
+          push: true
+          tags: |
+            ${{ env.WEBSOCKET_IMAGE }}:latest
+            ${{ env.WEBSOCKET_IMAGE }}:${{ steps.meta.outputs.sha_short }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Configure kubectl
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > $HOME/.kube/config
+
+      - name: Deploy to Kubernetes
+        run: |
+          # Update image tags in Helm values
+          helm upgrade --install todo ./todo-chart \
+            --namespace todo-app \
+            --create-namespace \
+            --set backend.image.tag=${{ github.sha }} \
+            --set frontend.image.tag=${{ github.sha }} \
+            --wait \
+            --timeout 10m
+
+      - name: Verify deployment
+        run: |
+          kubectl rollout status deployment/todo-backend -n todo-app
+          kubectl rollout status deployment/todo-frontend -n todo-app
+          kubectl get pods -n todo-app
+
+  notify:
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Send notification
+        run: |
+          echo "Deployment completed with status: ${{ needs.deploy.result }}"
+          # Add Slack/Discord webhook notification here if needed

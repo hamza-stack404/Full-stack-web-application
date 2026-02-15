@@ -16,6 +16,11 @@ spec:
     metadata:
       labels:
         {{- include "todo.frontend.labels" . | nindent 8 }}
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "frontend-service"
+        dapr.io/app-port: "{{ .Values.frontend.port }}"
+        dapr.io/log-level: "info"
     spec:
       containers:
       - name: frontend

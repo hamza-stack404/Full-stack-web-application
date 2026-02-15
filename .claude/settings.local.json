@@ -158,7 +158,12 @@
       "Bash(kubectl exec:*)",
       "Bash(git config:*)",
       "Bash(git checkout:*)",
-      "Bash(git add .claude/settings.local.json)"
+      "Bash(git add .claude/settings.local.json)",
+      "Bash(git commit --no-edit)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File \".specify/scripts/powershell/create-new-feature.ps1\" -Json -Number 4 -ShortName \"event-driven-cloud\" -Description \"Phase V: Advanced Cloud Deployment with Event-Driven Architecture - Extend Todo Chatbot with recurring tasks, reminders, priorities, tags, search/filter/sort and deploy to production cloud Kubernetes with event-driven architecture using Kafka and Dapr\")",
+      "Bash(.specify/scripts/bash/create-phr.sh:*)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File \".specify/scripts/powershell/check-prerequisites.ps1\" -Json)",
+      "Bash(python -m alembic revision:*)"
     ]
   }
 }
